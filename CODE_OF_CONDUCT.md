@@ -135,8 +135,8 @@ the community.
 
 ### Accepting and integrating work onto the remote repository
 
-- Once some work has been done on individual branches and we are ready to merge to the main branch, each of us will submit a pull request for our own branches
-- Together, as a group, after reviewing the pull request (by logging comments on the request on GitHub), we will accept the request and merge to main
+- Once some work has been done on individual branches and we are ready to merge to the main branch, each of us will submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request?tool=webui) for our own branches
+- Together, as a group, after reviewing the [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request?tool=webui) (by logging comments on the request on GitHub), we will accept the request and merge to main
 
 **Steps:**
 

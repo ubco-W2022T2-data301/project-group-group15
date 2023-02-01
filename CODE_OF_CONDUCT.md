@@ -112,6 +112,54 @@ individual, or aggression toward or disparagement of classes of individuals.
 **Consequence**: A permanent ban from any sort of public interaction within
 the community.
 
+---
+
+## Code Contribution Guidelines
+
+### Pushing work to the the remote repository
+
+- Any new features need to be pushed to a branch separate to the main branch
+- However, changes to files other than those that contain code (e.g. Jupyter Notebooks / Python scripts) can be pushed directly to main (e.g. READMEs, raw and processed data), unless otherwise specified
+
+**Steps:**
+
+1. `git branch name_of_feature`
+2. `git switch name_of_feature`
+3. (do your coding and make your commits to this branch)
+    1. `git add name_of_file_changed` (or `git add .`)
+    2. `git commit -m “meaningful text of changes that have been made”`
+4. `git push`
+5. `git switch main` (go back to main to bring it back in sync with tracking the remote main)
+6. `git reset HEAD^` (moving HEAD back up to origin/main to track the remote main branch to make sure new features correctly come in when pulling)
+7. `git switch feature` (go back to the feature branch to continue doing work, or create a new branch from here if you proceed to develop a new branch)
+
+### Accepting and integrating work onto the remote repository
+
+- Once some work has been done on individual branches and we are ready to merge to the main branch, each of us will submit a pull request
+- Once we have had several branches pushed to the remote repository and everything has been approved for integration by all of us, we can proceed to merge the branches to the main branch
+
+**Steps:**
+
+> Note: this example assumes that there are 3 branches total, which need to be merged with the main branch
+
+1. `git rebase feature_branch_1  feature_branch_2`
+2. `git rebase feature_branch_2  feature_branch_3`
+3. `git rebase feature_branch_3  main`
+4. `git pull —rebase; git push`
+
+- If you just want to work within your branch and push directly from that branch to the remote origin / main branch, you will need to set your feature branch to track the remote main branch
+
+**Steps:**
+
+1. Make sure you are already on your feature branch (`git switch name_of_feature`)
+2. `git branch -u origin/main`
+
+### Managing divergences
+
+- In the case where other group members have made commits while you were working on your own feature, you will need to pull those changes first and integrate them with your own work before pushing your changes to your branch or to main
+
+---
+
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],

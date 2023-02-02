@@ -19,7 +19,7 @@ There are 76 data columns shared across all 7 data sets, of which 70 of them are
 ## Team Members
 
 - Colin Lefter: I am a 1st year Computer Science student who is passionate about algorithmic finanical modelling, having experience with Python, Java and R.
-- Keisha Kwek: I am a first-year student in the Faculty of Science on track to major in Data Science. I am passionate about various environmental and economical sustainability matters in the world, where I hope to contribute to with the application of my skills from my degree.
+- Keisha Kwek: I am a first-year student in the Faculty of Science on track to major in Data Science. I am passionate about various environmental and economical sustainability matters in the world, where I hope to contribute in the improvement of with the application of my skills from my degree.
 - Person 3: one sentence about you!
 
 ## Images

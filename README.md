@@ -12,9 +12,9 @@ From an industry perspective, we intend to provide a solution to the problem of 
 
 ## Describe your dataset in about 150-200 words
 
-The raw data is composed of 7 data sets of equity data that includes data on the financial accounts, valuation, performance, dividends and margins of 8115 publicly-traded companies in the United States. The data is sourced from [TradingView](https://www.tradingview.com/), which grants the permission to use and distribute the data per their [attribution policy](https://www.tradingview.com/policies/) cited in their Terms of Service[^1]. This data has been extracted from TradingView's publicly available [Stock Screener](https://www.tradingview.com/screener/).
+The raw data is composed of 7 data sets of equity data that includes data on the financial accounts, valuation, performance, dividends and margins of 8116 publicly-traded companies in the United States. The data is sourced from [TradingView](https://www.tradingview.com/), which grants the permission to use and distribute the data per their [attribution policy](https://www.tradingview.com/policies/) cited in their Terms of Service[^1]. This data has been extracted from TradingView's publicly available [Stock Screener](https://www.tradingview.com/screener/).
 
-There are 76 data columns shared across all 7 data sets, of which 70 of them are unique. However, only 200 rows of data will be used, in which the number of columns will be significantly reduced according to their relevance in our analysis. Consequently, the total number of raw data points is 616740, of which our analysis will focus on 15200 raw data points. The data sets capture static financial market data for the 30th of January, 2023, which can be updated by uploading new data, but for our analysis, will remain constant.
+There are 76 data columns shared across all 7 data sets, of which 70 of them are unique. However, only 200 rows of data will be used, in which the number of columns will be significantly reduced according to their relevance in our analysis. Consequently, the total number of raw data points is 616816, of which our analysis will focus on 15200 raw data points. The data sets capture static financial market data for the 30th of January, 2023, which can be updated by uploading new data, but for our analysis, will remain constant.
 
 ## Team Members
 

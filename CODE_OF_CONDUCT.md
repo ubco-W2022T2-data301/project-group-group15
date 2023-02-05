@@ -116,7 +116,11 @@ the community.
 
 ## Code Contribution Guidelines
 
-### Pushing work to the the remote repository
+### Python Code Guidelines
+
+- Will be updated soon
+
+### Pushing work to the remote repository
 
 - Any new features need to be pushed to a branch separate to the main branch
 - However, changes to files other than those that contain code (e.g. Jupyter Notebooks / Python scripts) can be pushed directly to main (e.g. READMEs, raw and processed data), unless otherwise specified

@@ -118,7 +118,32 @@ the community.
 
 ### Python Code Guidelines
 
-- Will be updated soon
+- To write clean Python code, we need to implement some standardized conventions that all members will follow when committing code.
+- These conventions will follow those set out by the PEP guidelines
+
+1. ### Developing code in classes
+- The phases of the project will be subsetted into classes that inherit from one another, implementing Object Oriented Programming
+- All code must be written into functions
+
+2. ### Writing functions
+- Keep functions short and simple, and divide larger functions into smaller functions when necessary
+- Place docstrings at the top of every function and class to describe the main objective of the function, as well as a brief description of each parameter
+- Specify the data type of each parameter when writing functions
+
+**Example:**
+```python
+def useful_function(self, param_1, param_2)
+    """
+    Brief description of what this function does
+    :param param_1: what this parameter does
+    :param param_2: what this parameter does
+    """
+    # code, with comments where clarification is needed
+    new_param = param_1 * param_2
+    new_param += 1
+
+    return new_param
+```
 
 ### Pushing work to the remote repository
 

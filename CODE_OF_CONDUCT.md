@@ -117,9 +117,9 @@ the community.
 ## Code Contribution Guidelines
 
 ### Python Code Guidelines
-
 - To write clean Python code, we need to implement some standardized conventions that all members will follow when committing code.
 - These conventions will follow those set out by the PEP guidelines
+- All python code should use snake case (i.e. example_var)
 
 1. ### Developing code in classes
 - The phases of the project will be subsetted into classes that inherit from one another, implementing Object Oriented Programming
@@ -127,22 +127,66 @@ the community.
 
 2. ### Writing functions
 - Keep functions short and simple, and divide larger functions into smaller functions when necessary
-- Place docstrings at the top of every function and class to describe the main objective of the function, as well as a brief description of each parameter
+- Place docstrings at the top of every function and class to describe the main objective of the function, as well as a brief description of each parameter, what it returns and any exceptions that may be raised
+- If there are any unhandled exceptions, you should wrap your code in a try-except block
 - Specify the data type of each parameter when writing functions
+- The "self" keyword below indicates that the function is part of a class
 
-**Example:**
+**Function Notation Example**
 ```python
 def useful_function(self, param_1, param_2)
     """
     Brief description of what this function does
-    :param param_1: what this parameter does
-    :param param_2: what this parameter does
+
+    :param param_1: what this parameter is
+    :param param_2: what this parameter is
+    :returns: a description of what is returned
+    :raises KeyError: raises an exception
     """
     # code, with comments where clarification is needed
-    new_param = param_1 * param_2
-    new_param += 1
+    new_value = param_1 * param_2
+    new_value += 1
 
-    return new_param
+    return new_value
+```
+
+**Class Notation Example**
+```python
+class UsefulClass:
+    def __init__(self, param_1, param_2, param_3):
+        """
+        Brief description of what this class does
+
+        :param param_1: what this parameter is
+        :param param_2: what this parameter is
+        :param param_3: what this parameter is
+        :raises KeyError: raises an exception
+        """
+        self.param_1 = param_1
+        self.param_2 = param_2
+        self.param_3 = param3
+    
+    def first_function(self, param_1, param_2, function_specific_param):
+        """
+        Brief description of what this function does
+
+        :function_specific_param: what this parameter is
+        :returns: a description of what is returned
+        :raises KeyError: raises an exception
+        """
+        return param_1 * param_2
+
+    def second_function(self, param_2, param_3):
+        """
+        Brief description of what this function does
+        
+        :returns: a description of what is returned
+        :raises KeyError: raises an exception
+        """
+        return param_2 / param_3
+
+new_instance = UsefulClass(1, 2, 3)
+print(new_instance.first_function())
 ```
 
 ### Pushing work to the remote repository

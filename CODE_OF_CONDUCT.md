@@ -174,7 +174,9 @@ class UsefulClass:
         :returns: a description of what is returned
         :raises KeyError: raises an exception
         """
-        return param_1 * param_2
+        # note: param_3 is accessible as it is a class variable
+        result = param_1 / param_2 * param_3
+        return result
 
     def second_function(self, param_2, param_3):
         """
@@ -183,10 +185,35 @@ class UsefulClass:
         :returns: a description of what is returned
         :raises KeyError: raises an exception
         """
-        return param_2 / param_3
+        # note: param_3 is accessible as it is a class variable
+        result = param_3 / param_2 * param_1
+        return result
 
 new_instance = UsefulClass(1, 2, 3)
 print(new_instance.first_function())
+print(new_instance.second_function())
+```
+
+**Inheritance Example**
+```python
+class MyData:
+    def __init__(self, param_1, param_2):
+        self.param_1 = param_1
+        self.param_2 = param_2
+      
+    def function_1(self, param_3):
+        return param_1 * param_3
+      
+    def function_2(self, param_4):
+        return param_2 * param_4
+
+class Analysis(MyData):
+    def __init__(self, param_1, param_2, param_3, param_4):
+        MyData.__init__(param_1, param_2, param_3, param_4))
+    
+    def analysis_function(self, param_5):
+        # all instance variables from the prior class are now accessible
+        return param_1 * param_2 * param_3 * param_4 * param_5
 ```
 
 ### Pushing work to the remote repository

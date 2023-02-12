@@ -153,7 +153,7 @@ def useful_function(self, param_1: float, param_2: float) -> float # param_1 and
 **Class Notation Example**
 ```python
 class UsefulClass:
-    def __init__(self, param_1: float, param_2: float, param_3: int) -> float:
+    def __init__(self, param_1: float, param_2: float, param_3: int):
         """
         Brief description of what this class does
 
@@ -197,7 +197,7 @@ print(new_instance.second_function())
 **Inheritance Example**
 ```python
 class MyData:
-    def __init__(self, param_1: int, param_2: int) -> int:
+    def __init__(self, param_1: int, param_2: int):
         self.param_1 = param_1
         self.param_2 = param_2
       

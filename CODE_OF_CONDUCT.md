@@ -231,6 +231,13 @@ class Analysis(MyData):
 4. `git push`
 5. If you wish to continue working on your branch, make sure that you are still on it by running `git switch name-of-feature`
 
+### Undo commits
+If you have accidentally made a commit that you now wish to delete (e.g. because it was done on the wrong branch), consider the follwing:
+
+1. If it has not been pushed to the remote repository yet, run `git reset --hard HEAD^` if you want to delete the previous commit or `git reset --hard <commit-id>` if you want to delete an earlier commit
+2. If you have already pushed it to the remote repository, run `git push origin HEAD --force`
+3. NOTE: Your local work will be deleted by running the reset command, so be sure to save your work first
+
 ### Accepting and integrating work onto the remote repository
 
 - Once some work has been done on individual branches and we are ready to merge to the main branch, each of us will submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request?tool=webui) for our own branches

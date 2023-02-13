@@ -223,15 +223,13 @@ class Analysis(MyData):
 
 **Steps:**
 
-1. `git branch name_of_feature`
-2. `git switch name_of_feature`
+1. `git branch name-of-feature`
+2. `git switch name-of-feature`
 3. (do your coding and make your commits to this branch)
     1. `git add name_of_file_changed` (or `git add .`)
     2. `git commit -m “meaningful text of changes that have been made”`
 4. `git push`
-5. `git switch main` (go back to main to bring it back in sync with tracking the remote main)
-6. `git reset HEAD^` (moving HEAD back up to origin/main to track the remote main branch to make sure new features correctly come in when pulling)
-7. `git switch feature` (go back to the feature branch to continue doing work, or create a new branch from here if you proceed to develop a new branch)
+5. If you wish to continue working on your branch, make sure that you are still on it by running `git switch name-of-feature`
 
 ### Accepting and integrating work onto the remote repository
 

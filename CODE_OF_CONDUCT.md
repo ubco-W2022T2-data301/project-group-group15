@@ -134,7 +134,7 @@ the community.
 
 **Function Notation Example**
 ```python
-def useful_function(self, param_1, param_2)
+def useful_function(self, param_1: float, param_2: float) -> float # param_1 and param_2 are of type float, and the function returns a float
     """
     Brief description of what this function does
 
@@ -153,7 +153,7 @@ def useful_function(self, param_1, param_2)
 **Class Notation Example**
 ```python
 class UsefulClass:
-    def __init__(self, param_1, param_2, param_3):
+    def __init__(self, param_1: float, param_2: float, param_3: int):
         """
         Brief description of what this class does
 
@@ -166,7 +166,7 @@ class UsefulClass:
         self.param_2 = param_2
         self.param_3 = param3
     
-    def first_function(self, param_1, param_2, function_specific_param):
+    def first_function(self, function_specific_param: int) -> float:
         """
         Brief description of what this function does
 
@@ -174,19 +174,46 @@ class UsefulClass:
         :returns: a description of what is returned
         :raises KeyError: raises an exception
         """
-        return param_1 * param_2
+        # note: param_3, param_2, param_1 are accessible as they are class variables
+        result = (param_1 / param_2 * param_3) + function_specific_param
+        return result
 
-    def second_function(self, param_2, param_3):
+    def second_function(self, function_specific_param: float) -> float:
         """
         Brief description of what this function does
         
         :returns: a description of what is returned
         :raises KeyError: raises an exception
         """
-        return param_2 / param_3
+        # note: param_3, param_2, param_1 are accessible as they are class variables
+        result = (param_3 / param_2 * param_1) - function_specific_param
+        return result
 
-new_instance = UsefulClass(1, 2, 3)
+new_instance = UsefulClass(1.5, 2.3, 3) # inputs follow data type restrictions
 print(new_instance.first_function())
+print(new_instance.second_function())
+```
+
+**Inheritance Example**
+```python
+class MyData:
+    def __init__(self, param_1: int, param_2: int):
+        self.param_1 = param_1
+        self.param_2 = param_2
+      
+    def function_1(self, param_3):
+        return param_1 * param_3
+      
+    def function_2(self, param_4):
+        return param_2 * param_4
+
+class Analysis(MyData):
+    def __init__(self, param_3: int, param_4: float) -> float:
+        MyData.__init__(param_1, param_2, param_3, param_4))
+    
+    def analysis_function(self, param_5: int) -> float:
+        # all instance variables from the prior class are now accessible
+        return param_1 * param_2 * param_3 * param_4 * param_5
 ```
 
 ### Pushing work to the remote repository
@@ -196,15 +223,20 @@ print(new_instance.first_function())
 
 **Steps:**
 
-1. `git branch name_of_feature`
-2. `git switch name_of_feature`
+1. `git branch name-of-feature`
+2. `git switch name-of-feature`
 3. (do your coding and make your commits to this branch)
     1. `git add name_of_file_changed` (or `git add .`)
     2. `git commit -m “meaningful text of changes that have been made”`
 4. `git push`
-5. `git switch main` (go back to main to bring it back in sync with tracking the remote main)
-6. `git reset HEAD^` (moving HEAD back up to origin/main to track the remote main branch to make sure new features correctly come in when pulling)
-7. `git switch feature` (go back to the feature branch to continue doing work, or create a new branch from here if you proceed to develop a new branch)
+5. If you wish to continue working on your branch, make sure that you are still on it by running `git switch name-of-feature`
+
+### Undo commits
+If you have accidentally made a commit that you now wish to delete (e.g. because it was done on the wrong branch), consider the follwing:
+
+1. If it has not been pushed to the remote repository yet, run `git reset --hard HEAD^` if you want to delete the previous commit or `git reset --hard <commit-id>` if you want to delete an earlier commit
+2. If you have already pushed it to the remote repository, run `git push origin HEAD --force`
+3. NOTE: Your local work will be deleted by running the reset command, so be sure to save your work first
 
 ### Accepting and integrating work onto the remote repository
 

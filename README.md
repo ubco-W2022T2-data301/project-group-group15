@@ -16,13 +16,13 @@ The final product is delivered through an interactive Tableau Dashboard that dis
 
 The raw data is composed of 7 data sets of equity data that includes data on the financial accounts, valuation, performance, dividends and margins of 8116 publicly-traded companies in the United States. The data is sourced from [TradingView](https://www.tradingview.com/), which grants the permission to use and distribute the data per their [attribution policy](https://www.tradingview.com/policies/) cited in their Terms of Service[^1]. This data has been extracted from TradingView's publicly available [Stock Screener](https://www.tradingview.com/screener/).
 
-There are 76 data columns shared across all 7 data sets, of which 70 of them are unique. Select market data is provided by ICE Data Services, integrasted by TradingView.As the S&P 500 Index is the generally accepted benchmark for the top performing companies in the United States, 500 rows of data will be used, in which the number of columns will be significantly reduced according to their relevance in our analysis. Consequently, the total number of raw data points is 616816, of which our analysis will focus on 35000 unique raw data points. The data sets capture static financial market data for the **30th of January, 2023**, which can be updated by uploading new data, but for our analysis, will remain constant.
+There are 76 data columns shared across all 7 data sets, of which 70 of them are unique. Select market data is provided by ICE Data Services, integrasted by TradingView. As the S&P 500 Index is the generally accepted benchmark for the top performing companies in the United States, 500 rows of data will be used, in which the number of columns will be significantly reduced according to their relevance in our analysis. Consequently, the total number of raw data points is 616816, of which our analysis will focus on 35000 unique raw data points. The data sets capture static financial market data for the **30th of January, 2023**, which can be updated by uploading new data, but for our analysis, will remain constant.
 
 ## Team Members
 
 - Colin Lefter: I am a first-year Computer Science student who is passionate about algorithmic finanical modelling, having experience with algorithmic trading, Python, Java and R.
 - Keisha Kwek: I am a first-year student in the Faculty of Science on track to major in Data Science. I am passionate about various environmental and economical sustainability matters in the world, where I hope to contribute in the improvement of with the application of my skills from my degree.
-- Person 3: one sentence about you!
+- Yigit Yurdusever: I am a third-year management student studying finance. I do have a keen interest in financial markets and investment instruments. 
 
 ## Images
 

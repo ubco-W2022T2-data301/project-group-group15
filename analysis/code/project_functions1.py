@@ -11,7 +11,7 @@ class EquityData:
         self.common_data_path = common_data_path
         self.extension = extension
     
-    def load_and_process_data(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[]) -> pd.DataFrame:
+    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[]) -> pd.DataFrame:
         """Uses method chaining to read in the raw data up to a specified number of columns while also dropping any desired columns
         
         :file_name: the name of the file, with the extension included

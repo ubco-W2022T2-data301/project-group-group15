@@ -25,6 +25,7 @@ class EquityData:
             pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
             .iloc[:number_of_rows]
             .drop(columns=exclude_columns)
+            .dropna()
             )
         
         return self.df

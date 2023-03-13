@@ -25,10 +25,10 @@ There are 76 data columns shared across all 7 data sets, of which 70 of them are
 - Yigit Yurdusever: I am a third-year management student studying finance. I do have a keen interest in financial markets and investment instruments. 
 
 ## Images
-
-{You should use this area to add a screenshot of an interesting plot, or of your dashboard}
-
-<img src ="images/test.png" width="100px">
+![img](images/img_3.png)
+![img](images/img_17.png)
+![img](images/img_10.png)
+![img](images/img_19.png)
 
 ## References
 

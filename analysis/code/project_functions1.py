@@ -130,6 +130,35 @@ class QuantitativeAnalysis:
         
         return self.processed_df
         
+    def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization') -> pd.DataFrame:
+        """Consturcts a multiple linear regression model
+        :df: a Pandas DataFrame containing the data to be processed
+        :predictors: the x values that will be used to predict the target y value
+        :target_y: the y value to be predicted
+        :returns: a Pandas DataFrame containing a statistical summary of the performance of the model
+        """
+        df = df.select_dtypes(exclude='object')
+        predictors.remove(target_y) # so you don't have a perfect correlation for the same variable
+
+        X = mega_df[predictors]
+        y = mega_df[target_y]
+
+        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+        mlr = LinearRegression()
+        mlr.fit(x_train, y_train)
+        y_pred_mlr = mlr.predict(x_test)
+
+        mlr_diff = pd.DataFrame({'Actual value': y_test, 'Predicted value': y_pred_mlr})
+        mlr_diff.head()
+
+        meanAbErr = metrics.mean_absolute_error(y_test, y_pred_mlr)
+        meanSqErr = metrics.mean_squared_error(y_test, y_pred_mlr)
+        rootMeanSqErr = np.sqrt(metrics.mean_squared_error(y_test, y_pred_mlr))
+        
+        results = {'R squared': mlr.score(X,y) * 100, 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
+        results_df = pd.DataFrame(results, index=['Model Results'])
+        return results_df
+    
     def fourier_transform(self):
         pass
     
@@ -241,8 +270,9 @@ class DataVisualization(QuantitativeAnalysis):
         
         return self.fig
 
-    def heatmap_plot(self, df: pd.DataFrame, data_name: str, number_of_companies: int=50, correlation_plot: bool=False) -> plt.graph_objs._figure.Figure:
-        """Constructs an interactive heatmap plot of equity data against each company (ticker)
+    def heatmap_plot(self, df: pd.DataFrame, title: str, number_of_companies: int=50, number_of_subset_companies: int=20,
+                    plot_last_companies: bool=False, sort_by: str='Market Capitalization', correlation_plot: bool=False, plot_width: int=1000, plot_height: int=1000) -> plt.graph_objs._figure.Figure:
+        """A wrapper function for the default heatmap plot, constructing an interactive heatmap plot of equity data against each company (ticker)
         
         :df: a Pandas DataFrame of equity data
         :data_name: the name of the type of data that has been input into the plot
@@ -261,42 +291,49 @@ class DataVisualization(QuantitativeAnalysis):
             self.df_corr_viz = self.df_corr.mask(self.mask).dropna(how='all').dropna('columns', how='all')
             
             return self.df_corr_viz
+        
+        df = df.sort_values(by=sort_by, ascending=False)
     
         if correlation_plot:            
-            data_points = len(df.columns)
-            self.title = f'Correlation Plot of {data_points} Data Points of {data_name}'
-            
             self.cor_df = construct_correlation_plot(self)
             self.fig = px.imshow(
                 self.cor_df,
                 text_auto=True,
                 template='plotly_dark',
-                title=self.title,
-                width=1000,
-                height=1000)
+                title=title,
+                width=plot_width,
+                height=plot_height)
         else:
-            df = df[:number_of_companies]
+            df = df[:number_of_companies] # selecting only x number of companies in order
+                
             self.z = []
             self.tickers = df['Ticker']
             df.index = df['Ticker']
             df = df.select_dtypes(exclude='object')
             for column in df.columns:
-                self.rank(df, col=column)
-
+                self.rank(df, col=column) # scoring the data
+                        
+            if plot_last_companies:
+                df = df[-number_of_subset_companies:]
+                self.tickers = self.tickers[-number_of_subset_companies:]
+            else:
+                df = df[:number_of_subset_companies] # the normalization algorithm has been applied on number_of_companies but we choose a subset from that
+                self.tickers = self.tickers[:number_of_subset_companies]
+            
             self.score_data_length = len(df.axes[1])
             self.input_df = df.T[int(self.score_data_length/2 + 1):].T
             for column in self.input_df.columns:
                 self.z.append(self.input_df[column].round(3))
             
-            self.title = f'Heat Map of Normalized {data_name} for the Top {number_of_companies} Companies by Market Capitalization in the S&P500 Index'
-            
             self.fig = px.imshow(
                 self.z,
                 text_auto=True,
                 template='plotly_dark',
-                title=self.title,
+                title=title,
                 x=[x for x in self.tickers], 
-                y=[x for x in df.columns[int(self.score_data_length/2 + 1):]])
+                y=[x for x in df.columns[int(self.score_data_length/2 + 1):]],
+                width=plot_width,
+                height=plot_height)
         
         return self.fig
 

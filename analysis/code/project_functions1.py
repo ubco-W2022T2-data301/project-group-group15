@@ -1,15 +1,22 @@
 import pandas as pd
+import plotly as plt
+import seaborn as sns
 import numpy as np
+import datetime as dt
+import matplotlib.pyplot as mplt
+from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing
+import plotly.graph_objects as go
 import plotly.express as px
 import plotly.figure_factory as ff
-from sklearn.linear_model import LinearRegression
+from IPython.display import display, HTML, Markdown, Latex
 from tqdm import tqdm, trange
-from dataclasses import dataclass
 from typing import *
-import plotly as plt
-import matplotlib.pyplot as mplt
-import seaborn as sns
+from dataclasses import dataclass
+from scipy import stats
+import plotly.io as pio
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
 
 @dataclass
 class ValueRange:
@@ -138,10 +145,12 @@ class QuantitativeAnalysis:
         :returns: a Pandas DataFrame containing a statistical summary of the performance of the model
         """
         df = df.select_dtypes(exclude='object')
-        predictors.remove(target_y) # so you don't have a perfect correlation for the same variable
+        
+        if target_y in predictors:
+            predictors.remove(target_y) # so you don't have a perfect correlation for the same variable
 
-        X = mega_df[predictors]
-        y = mega_df[target_y]
+        X = df[predictors]
+        y = df[target_y]
 
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
         mlr = LinearRegression()
@@ -164,7 +173,7 @@ class QuantitativeAnalysis:
     
     def rank(self, df: pd.DataFrame, col: str, normalize_only: bool=True, threshold: float=1.5,
              below_threshold: bool=True, filter_outliers: bool=True, normalize_after: bool=False,
-             lower_quantile: float=0.05, upper_quantile: float=0.95) -> None:
+             lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False) -> None:
         """The scoring algorithm for determining the weight of each equity in the construction of the portfolio for this specific column examined.
         Features a custom outlier-filtering algorithm that is robust to outliers in the data set while still returning normalized values.
         
@@ -177,6 +186,7 @@ class QuantitativeAnalysis:
         :normalize_after: if True, normalizes the data only after the threshold filter has been applied\n
         :lower_quantile: specifies the lower quantile of the distribution when filtering outliers\n
         :upper_quantile: specifies the upper quantile of the distribution when filtering outliers\n
+        :inplace: if true, specifies that the normalization algorithm should directly modify the column being processed, otherwise, a new column is created
         """
         
         #NOTE: should make an option for no threshold
@@ -219,8 +229,13 @@ class QuantitativeAnalysis:
         self.y = np.array(self.x).reshape(-1, 1)
         self.y = preprocessing.MinMaxScaler().fit_transform(self.y)
  
-        for col_idx, array_idx in zip(self.x.index, range(len(self.y))):
-            df.at[col_idx, new_col] = self.y[array_idx]
+        if inplace: # NOTE: this is currently an unstable feature and does not give accurate results
+            df.drop(columns=[new_col], inplace=True) # directly modifying the original column, so the new column should be removed
+            for col_idx, array_idx in zip(self.x.index, range(len(self.y))):
+                df.at[col_idx, col] = self.y[array_idx]
+        else:
+            for col_idx, array_idx in zip(self.x.index, range(len(self.y))):
+                df.at[col_idx, new_col] = self.y[array_idx]
         
         # if we are giving the minimum score to values below the threshold, assign 0 to those values
         if not normalize_only:
@@ -381,3 +396,13 @@ class DataVisualization(QuantitativeAnalysis):
         sns.heatmap(self.corr, mask=self.mask, cmap=self.cmap, vmax=.3, center=0,
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
+
+class PortfolioConstruction(DataVisualization):
+    def __init__(self):
+        DataVisualization.__init__(self)
+    
+    def asset_allocation(self):
+        pass
+    
+    def construct_portfolio(self):
+        pass

@@ -295,7 +295,7 @@ class DataVisualization(QuantitativeAnalysis):
         :correlation_plot: if true, creates a correlation plot instead of a heatmap plot
         :returns: a heatmap plot
         """
-        def construct_correlation_plot(self) -> pd.DataFrame:
+        def construct_correlation_plot(self) -> plt.graph_objs._figure.Figure:
             """A helper function to convert the heat map into a correlation plot"""
             # Correlation
             self.df_corr = df.corr(numeric_only=True).round(1)
@@ -305,19 +305,21 @@ class DataVisualization(QuantitativeAnalysis):
             # Final visualization
             self.df_corr_viz = self.df_corr.mask(self.mask).dropna(how='all').dropna('columns', how='all')
             
-            return self.df_corr_viz
-        
-        df = df.sort_values(by=sort_by, ascending=False)
-    
-        if correlation_plot:            
-            self.cor_df = construct_correlation_plot(self)
             self.fig = px.imshow(
-                self.cor_df,
+                self.df_corr_viz,
                 text_auto=True,
                 template='plotly_dark',
                 title=title,
                 width=plot_width,
                 height=plot_height)
+            
+            return self.fig
+        
+        df = df.sort_values(by=sort_by, ascending=False)
+    
+        if correlation_plot:            
+            return construct_correlation_plot(self)
+            
         else:
             df = df[:number_of_companies] # selecting only x number of companies in order
                 

@@ -168,9 +168,6 @@ class QuantitativeAnalysis:
         results_df = pd.DataFrame(results, index=['Model Results'])
         return results_df
     
-    def fourier_transform(self):
-        pass
-    
     def rank(self, df: pd.DataFrame, col: str, normalize_only: bool=True, threshold: float=1.5,
              below_threshold: bool=True, filter_outliers: bool=True, normalize_after: bool=False,
              lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False) -> None:
@@ -285,8 +282,9 @@ class DataVisualization(QuantitativeAnalysis):
         
         return self.fig
 
-    def heatmap_plot(self, df: pd.DataFrame, title: str, number_of_companies: int=50, number_of_subset_companies: int=20,
-                    plot_last_companies: bool=False, sort_by: str='Market Capitalization', correlation_plot: bool=False, plot_width: int=1000, plot_height: int=1000) -> plt.graph_objs._figure.Figure:
+    def heatmap_plot(self, df: pd.DataFrame, title: str='Heat Map', number_of_companies: int=500, number_of_subset_companies: int=20,
+                    plot_last_companies: bool=False, sort_by: str='Market Capitalization', correlation_plot: bool=False,
+                    plot_width: int=1000,plot_height: int=1000) -> plt.graph_objs._figure.Figure:
         """A wrapper function for the default heatmap plot, constructing an interactive heatmap plot of equity data against each company (ticker)
         
         :df: a Pandas DataFrame of equity data

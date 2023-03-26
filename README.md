@@ -24,10 +24,10 @@ There are 76 data columns shared across all 7 data sets, of which 70 of them are
 - Keisha Kwek: I am a first-year student in the Faculty of Science on track to major in Data Science. I am passionate about various environmental and economical sustainability matters in the world, where I hope to contribute in the improvement of with the application of my skills from my degree.
 
 ## Images
-![img](images/img_3.png)
-![img](images/img_17.png)
-![img](images/img_10.png)
-![img](images/img_19.png)
+
+![img](images/Combined_Heatmap_Panel.png)
+![img](images/Large_Heatmap_Plot_A.png)
+![img](images/CorPlot.png)
 
 ## References
 

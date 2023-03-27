@@ -51,14 +51,14 @@ class EquityData:
         """
         assert type(number_of_rows) == int, "Number of rows must be an integer"
         
-        self.df = (
+        df = (
             pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
             .iloc[:number_of_rows]
             .drop(columns=exclude_columns)
             .dropna()
             )
         
-        return self.df
+        return df
     
     def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/"):
         for df, file_name in zip(data, file_names):
@@ -110,13 +110,13 @@ class QuantitativeAnalysis:
         else:
             y = y[:len(X)]
         
-        self.X = np.array(X).reshape(-1, 1)
-        self.y = np.array(y).reshape(-1, 1)
+        X = np.array(X).reshape(-1, 1)
+        y = np.array(y).reshape(-1, 1)
         
         model = LinearRegression()
-        model.fit(self.X, self.y)
+        model.fit(X, y)
          
-        return model.score(self.X, self.y)
+        return model.score(X, y)
 
     def get_lin_reg_coefs(self, df: pd.DataFrame, x_values: list(), y_value: str='3-Month Performance') -> pd.DataFrame:
         """Returns a Pandas DataFrame with the coefficients of determination for each y-on-x regression
@@ -128,14 +128,14 @@ class QuantitativeAnalysis:
         :returns: A Pandas DataFrame with the coefficients of determination for each y-on-x regression\n
         
         """
-        self.coef_dict = dict.fromkeys(x_values, 0) # initialize a dict with all the columns assigned to a value of 0
+        coef_dict = dict.fromkeys(x_values, 0) # initialize a dict with all the columns assigned to a value of 0
         
         for predictor in tqdm(x_values, desc="Constructing linear regression models", total=len(x_values)):
-            self.coef_dict[predictor] = self.lin_reg_coef_determination(df, X=predictor, y=y_value)
+            coef_dict[predictor] = self.lin_reg_coef_determination(df, X=predictor, y=y_value)
         
-        self.processed_df = pd.DataFrame(list(zip(self.coef_dict.keys(), self.coef_dict.values())), columns=[f'Equity Data Against {y_value}', 'Coefficient of Determination'])
+        processed_df = pd.DataFrame(list(zip(coef_dict.keys(), coef_dict.values())), columns=[f'Equity Data Against {y_value}', 'Coefficient of Determination'])
         
-        return self.processed_df
+        return processed_df
         
     def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization') -> pd.DataFrame:
         """Consturcts a multiple linear regression model
@@ -254,7 +254,31 @@ class DataVisualization(QuantitativeAnalysis):
     def __init__(self):
         QuantitativeAnalysis.__init__(self)
 
-    def score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
+    def score_density_plot(self, df: pd.DataFrame, cols: list(), title: str="Density Plot") -> plt.graph_objs._figure.Figure:
+        """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below
+        
+        :df: a Pandas DataFrame of equity data
+        :cols: a list of column names to be plotted
+        :returns: a density plot
+        """
+        df = df.select_dtypes(exclude='object')[:self.number_of_companies]
+        
+        for column in cols:
+            self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
+
+        hist_data = [df[x + " Score"] for x in cols]
+        group_labels = [x + " Score" for x in cols]
+        colors = ['#94F3E4', '#333F44', '#37AA9C']
+
+        fig = ff.create_distplot(hist_data, group_labels, show_hist=False, colors=colors)
+        fig.update_layout(title_text=title, template='plotly_dark')
+
+        fig.update_xaxes(title='Score (0 = low, 1 = high)')
+        fig.update_yaxes(title='Density')
+        
+        return fig
+
+    def legacy_score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below
         
         :df: a Pandas DataFrame of equity data
@@ -262,25 +286,25 @@ class DataVisualization(QuantitativeAnalysis):
         :returns: a density plot
         """
         df = df.select_dtypes(exclude='object')[:self.number_of_companies]
-        self.n = len(df)
+        n = len(df)
         
         for column in df.columns:
             self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
             
-        self.score_data_length = len(df.axes[1])
-        self.input_df = df.T[int(self.score_data_length/2 + 1):].T
-        self.hist_data = [self.input_df[x] for x in self.input_df.columns]
+        score_data_length = len(df.axes[1])
+        input_df = df.T[int(score_data_length/2 + 1):].T
+        hist_data = [input_df[x] for x in input_df.columns]
         
-        self.group_labels = [x for x in self.input_df.columns]
-        self.colors = ['#333F44', '#37AA9C', '#94F3E4']
+        group_labels = [x for x in input_df.columns]
+        colors = ['#333F44', '#37AA9C', '#94F3E4']
 
-        self.fig = ff.create_distplot(self.hist_data, self.group_labels, show_hist=False, colors=self.colors)
-        self.fig.update_layout(title_text=f'Distribution for Normalized {data_name} of {self.n} Companies in the S&P500', template='plotly_dark')
+        fig = ff.create_distplot(hist_data, group_labels, show_hist=False, colors=colors)
+        fig.update_layout(title_text=f'Distribution for Normalized {data_name} of {n} Companies in the S&P500', template='plotly_dark')
         
-        self.fig.update_xaxes(title='Score (0 = low, 1 = high)')
-        self.fig.update_yaxes(title='Density')
+        fig.update_xaxes(title='Score (0 = low, 1 = high)')
+        fig.update_yaxes(title='Density')
         
-        return self.fig
+        return fig
 
     def heatmap_plot(self, df: pd.DataFrame, title: str='Heat Map', number_of_companies: int=500, number_of_subset_companies: int=20,
                     plot_last_companies: bool=False, sort_by: str='Market Capitalization', correlation_plot: bool=False,
@@ -293,64 +317,64 @@ class DataVisualization(QuantitativeAnalysis):
         :correlation_plot: if true, creates a correlation plot instead of a heatmap plot
         :returns: a heatmap plot
         """
-        def construct_correlation_plot(self) -> plt.graph_objs._figure.Figure:
+        def construct_correlation_plot() -> plt.graph_objs._figure.Figure:
             """A helper function to convert the heat map into a correlation plot"""
             # Correlation
-            self.df_corr = df.corr(numeric_only=True).round(1)
+            df_corr = df.corr(numeric_only=True).round(1)
             # Conver to a triangular correlation plot
-            self.mask = np.zeros_like(self.df_corr, dtype=bool)
-            self.mask[np.triu_indices_from(self.mask)] = True
+            mask = np.zeros_like(df_corr, dtype=bool)
+            mask[np.triu_indices_from(mask)] = True
             # Final visualization
-            self.df_corr_viz = self.df_corr.mask(self.mask).dropna(how='all').dropna('columns', how='all')
+            df_corr_viz = df_corr.mask(mask).dropna(how='all').dropna('columns', how='all')
             
-            self.fig = px.imshow(
-                self.df_corr_viz,
+            fig = px.imshow(
+                df_corr_viz,
                 text_auto=True,
                 template='plotly_dark',
                 title=title,
                 width=plot_width,
                 height=plot_height)
             
-            return self.fig
+            return fig
         
         df = df.sort_values(by=sort_by, ascending=False)
     
         if correlation_plot:            
-            return construct_correlation_plot(self)
+            return construct_correlation_plot()
             
         else:
             df = df[:number_of_companies] # selecting only x number of companies in order
                 
-            self.z = []
-            self.tickers = df['Ticker']
-            df.index = df['Ticker']
+            z = []
+            tickers = df['Ticker']
+            index = df['Ticker']
             df = df.select_dtypes(exclude='object')
             for column in df.columns:
                 self.rank(df, col=column) # scoring the data
                         
             if plot_last_companies:
                 df = df[-number_of_subset_companies:]
-                self.tickers = self.tickers[-number_of_subset_companies:]
+                tickers = tickers[-number_of_subset_companies:]
             else:
                 df = df[:number_of_subset_companies] # the normalization algorithm has been applied on number_of_companies but we choose a subset from that
-                self.tickers = self.tickers[:number_of_subset_companies]
+                tickers = tickers[:number_of_subset_companies]
             
-            self.score_data_length = len(df.axes[1])
-            self.input_df = df.T[int(self.score_data_length/2 + 1):].T
-            for column in self.input_df.columns:
-                self.z.append(self.input_df[column].round(3))
+            score_data_length = len(df.axes[1])
+            input_df = df.T[int(score_data_length/2 + 1):].T
+            for column in input_df.columns:
+                z.append(input_df[column].round(3))
             
-            self.fig = px.imshow(
-                self.z,
+            fig = px.imshow(
+                z,
                 text_auto=True,
                 template='plotly_dark',
                 title=title,
-                x=[x for x in self.tickers], 
-                y=[x for x in df.columns[int(self.score_data_length/2 + 1):]],
+                x=[x for x in tickers], 
+                y=[x for x in df.columns[int(score_data_length/2 + 1):]],
                 width=plot_width,
                 height=plot_height)
         
-        return self.fig
+        return fig
 
     def scatter_3d(self, df: pd.DataFrame, x: str, y: str, z: str) -> plt.graph_objs._figure.Figure:
         """Constructs a 3D interactive plot of equity data on 3 axes
@@ -381,19 +405,16 @@ class DataVisualization(QuantitativeAnalysis):
         :data_name: the name of the data being plotted
         """
         # Compute the correlation matrix
-        self.corr = df.corr(numeric_only=True)
+        corr = df.corr(numeric_only=True)
 
         # Generate a mask for the upper triangle
-        self.mask = np.triu(np.ones_like(self.corr, dtype=bool))
-
-        # Set up the matplotlib figure
-        self.f, self.ax = plt.subplots(figsize=(18, 14))
+        mask = np.triu(np.ones_like(corr, dtype=bool))
 
         # Generate a custom diverging colormap
-        self.cmap = sns.diverging_palette(1, 10, as_cmap=True)
+        cmap = sns.diverging_palette(1, 10, as_cmap=True)
 
         #Draw the heatmap with the mask and correct aspect ratio
-        sns.heatmap(self.corr, mask=self.mask, cmap=self.cmap, vmax=.3, center=0,
+        sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
 

@@ -173,6 +173,7 @@ class QuantitativeAnalysis:
              lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False) -> None:
         """The scoring algorithm for determining the weight of each equity in the construction of the portfolio for this specific column examined.
         Features a custom outlier-filtering algorithm that is robust to outliers in the data set while still returning normalized values.
+        Normalizes one column at a time.
         
         :df: The original dataframe\n
         :col: The name of the column being extracted from the dataframe provided\n

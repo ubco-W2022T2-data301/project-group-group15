@@ -17,6 +17,7 @@ from scipy import stats
 import plotly.io as pio
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from plotly.subplots import make_subplots
 
 @dataclass
 class ValueRange:
@@ -41,7 +42,7 @@ class EquityData:
         self.common_data_path = common_data_path
         self.extension = extension
 
-    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[]) -> pd.DataFrame:
+    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[], additional_data: pd.DataFrame=None, additional_column: str=None) -> pd.DataFrame:
         """Uses method chaining to read in the raw data up to a specified number of columns while also dropping any desired columns
         
         :file_name: the name of the file, with the extension included
@@ -50,21 +51,42 @@ class EquityData:
         :returns: a new Pandas DataFrame
         """
         assert type(number_of_rows) == int, "Number of rows must be an integer"
+        df = pd.DataFrame()
         
-        df = (
-            pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
-            .iloc[:number_of_rows]
-            .drop(columns=exclude_columns)
-            .dropna()
-            )
+        def method_chain():
+            """A helper function to create a central method chain"""
+            df = (
+                pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
+                .iloc[:number_of_rows]
+                .drop(columns=exclude_columns)
+                .dropna()
+                )
+            return df
+        
+        if additional_data is not None and additional_column is not None:
+            df = (
+                method_chain()
+                .assign(new_col=additional_data[additional_column])
+                .rename(columns={"new_col": additional_column})
+                )
+        else:
+            df = method_chain()
+        
         if 'Unnamed: 0' in df.columns:
             df = df.drop(columns=['Unnamed: 0'])
         
         return df
     
-    def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/"):
+    def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/") -> None:
         for df, file_name in zip(data, file_names):
             df.to_csv(directory_path + "processed_" + self.common_data_path + file_name + self.extension)
+    
+    def combined_data_frame(self, data: list, drop_strings: bool=False) -> pd.DataFrame:
+        df = (pd.concat(data, axis=1)
+            .dropna()
+            )
+        df = df.loc[:,~df.columns.duplicated()].copy()
+        return df
 
 # NOTE: ANALYSIS FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class QuantitativeAnalysis:
@@ -376,6 +398,93 @@ class DataVisualization(QuantitativeAnalysis):
                 y=[x for x in df.columns[int(score_data_length/2 + 1):]],
                 width=plot_width,
                 height=plot_height)
+        
+        return fig
+    
+    def subplot_generator(self, df: pd.DataFrame, predictors: list, title: str, height_reduction_factor = 8, width_multiplier = 1, horizontal_spacing= 0.02, vertical_spacing = 0.005, rows=4, cols=4):
+        fig = make_subplots(
+            rows=rows,
+            cols=cols,
+            shared_yaxes=True,
+            subplot_titles = ['Sorted by ' + predictor for set in predictors for predictor in set],
+            horizontal_spacing=horizontal_spacing,
+            vertical_spacing=vertical_spacing,
+            )
+        
+        def pair_construction(row: int, col: int, predictor) -> None:
+            row += 1
+            col += 1
+            
+            fig.add_trace(
+            trace=self.heatmap_plot(
+            df=df,
+            plot_last_companies=False,
+            sort_by=predictor).data[0],
+            row = row,
+            col = col
+        )
+            fig.add_trace(
+            trace=self.heatmap_plot(
+            df=df,
+            plot_last_companies=True,
+            sort_by=predictor).data[0],
+            row = row,
+            col = col
+        )
+        
+        num_cols = 4
+        
+        for row in range(num_cols):
+            for col in range(num_cols):
+                pair_construction(row, col, predictors[row][col])
+
+        height_multiplier = rows*cols - height_reduction_factor
+        fig.update_layout(
+            title_text=title,
+            template='plotly_dark',
+            width=1500*width_multiplier,
+            height=1500*height_multiplier)
+        
+        return fig
+
+    def binary_subplot_generator(self, df: pd.DataFrame, predictors: list, title: str, height_reduction_factor = 8, width_multiplier = 1, horizontal_spacing= 0.02, vertical_spacing = 0.005, rows=4, cols=2):
+        fig = make_subplots(
+            rows=rows,
+            cols=cols,
+            shared_yaxes=True,
+            column_titles=['Top 20 Companies', 'Bottom 20 Companies'],
+            row_titles = ['Sorted by ' + predictor for predictor in predictors],
+            horizontal_spacing=horizontal_spacing,
+            vertical_spacing=vertical_spacing,
+            )
+        
+        for col in range(1, cols+1):
+            for row, predictor in zip(range(1, rows+1), predictors):
+                if (col % 2 == 0):
+                    fig.add_trace(
+                    trace=self.heatmap_plot(
+                    df=df,
+                    plot_last_companies=True,
+                    sort_by=predictor).data[0],
+                    row = row,
+                    col = col
+                )
+                else:
+                    fig.add_trace(
+                    trace=self.heatmap_plot(
+                    df=df,
+                    plot_last_companies=False,
+                    sort_by=predictor).data[0],
+                    row = row,
+                    col = col
+                )
+
+        height_multiplier = rows*cols - height_reduction_factor
+        fig.update_layout(
+            title_text=title,
+            template='plotly_dark',
+            width=1500*width_multiplier,
+            height=1500*height_multiplier)
         
         return fig
 

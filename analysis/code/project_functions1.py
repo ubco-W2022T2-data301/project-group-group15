@@ -57,6 +57,8 @@ class EquityData:
             .drop(columns=exclude_columns)
             .dropna()
             )
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop(columns=['Unnamed: 0'])
         
         return df
     

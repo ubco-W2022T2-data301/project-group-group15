@@ -279,7 +279,7 @@ class DataVisualization(QuantitativeAnalysis):
     def __init__(self):
         QuantitativeAnalysis.__init__(self)
 
-    def score_density_plot(self, df: pd.DataFrame, cols: list(), title: str="Density Plot") -> plt.graph_objs._figure.Figure:
+    def score_density_plot(self, df: pd.DataFrame, cols: list(), title: str="Density Plot", normalization: bool=True, search_for_score: bool=True) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below
         
         :df: a Pandas DataFrame of equity data
@@ -288,11 +288,16 @@ class DataVisualization(QuantitativeAnalysis):
         """
         df = df.select_dtypes(exclude='object')[:self.number_of_companies]
         
-        for column in cols:
-            self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
+        if normalization:
+            for column in cols:
+                self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
 
-        hist_data = [df[x + " Score"] for x in cols]
-        group_labels = [x + " Score" for x in cols]
+        if search_for_score:
+            hist_data = [df[x + " Score"] for x in cols]
+            group_labels = [x + " Score" for x in cols]
+        else:
+            hist_data = [df[x] for x in cols]
+            group_labels = [x for x in cols]
         colors = ['#94F3E4', '#333F44', '#37AA9C']
 
         fig = ff.create_distplot(hist_data, group_labels, show_hist=False, colors=colors)

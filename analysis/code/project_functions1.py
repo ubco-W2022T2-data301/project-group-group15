@@ -273,6 +273,30 @@ class QuantitativeAnalysis:
         df = df[(df[col] <= upper_fence) & (df[col] >= lower_fence)]
         
         return df
+    
+    def extract_corr_plot_counts(self, df: pd.DataFrame, correlation_threshold: int=0.7) -> pd.DataFrame:
+        corr = df.corr(numeric_only=True)
+
+        mask = np.zeros_like(corr, dtype=bool)
+        mask[np.triu_indices_from(mask)] = True
+        corr_df = corr.mask(mask).dropna(how='all').dropna('columns', how='all')
+
+        cols = [col for col in corr_df]
+        score_count_df = corr_df
+        score_count_df['Count'] = 0
+        score_count_df = score_count_df.drop(columns=cols)
+        score_count_df = score_count_df.T
+        score_count_df['Price'] = 0
+        score_count_df.columns = score_count_df.columns
+
+        for col in corr_df.columns:
+            for row in corr_df.index:
+                current_score = abs(corr_df.loc[row, col])
+                if current_score != 1 and current_score >= correlation_threshold:
+                    score_count_df[col] += 1
+                    score_count_df[row] += 1
+        
+        return score_count_df
 
 # NOTE: VISUALIZATION FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class DataVisualization(QuantitativeAnalysis):
@@ -437,10 +461,8 @@ class DataVisualization(QuantitativeAnalysis):
             col = col
         )
         
-        num_cols = 4
-        
-        for row in range(num_cols):
-            for col in range(num_cols):
+        for row in range(rows):
+            for col in range(cols):
                 pair_construction(row, col, predictors[row][col])
 
         height_multiplier = rows*cols - height_reduction_factor

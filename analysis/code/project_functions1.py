@@ -545,11 +545,11 @@ class DataVisualization(QuantitativeAnalysis):
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
 
-class PortfolioRecommendation(EquityData, DataVisualization):
+class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
     def __init__(self, portfolio_size: int=50, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
-                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.4, investment_strategy: str="Growth"):
+                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.2, investment_strategy: str="Growth"):
         EquityData.__init__(self)
-        DataVisualization.__init__(self)
+        QuantitativeAnalysis.__init__(self)
         
         """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied
         :portfolio_size: the number of assets included in the final portfolio
@@ -577,11 +577,24 @@ class PortfolioRecommendation(EquityData, DataVisualization):
         self.preferred_companies = preferred_industries
         self.investment_strategy = investment_strategy
     
+    def compute_diversification(self):
+        # higher the number, lower the diversification
+        if 0.9 <= self.diversification <= 1: # highest degree of diversification (evenly split funds)
+            return 0.3, 0.7
+        elif 0.75 <= self.diversification < 0.9:
+            return 0.2, 0.8
+        elif 0.5 <= self.diversification < 0.75:
+            return 0.1, 0.9
+        elif 0.25 <= self.diversification < 0.5:
+            return 0.01, 0.99
+        else:
+            return 0.011, 0.999 # lowest degree of diversification (do not split evenly split funds for many companies)
+    
     def asset_allocation(self):
-        equities = self.EquityData("processed_us_equities_tradingview_data_")
+        equities = EquityData("processed_us_equities_tradingview_data_")
         scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/")
         complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
-        
+
         score_count_df = self.extract_corr_plot_counts(complete_df).T
         
         def extract_top_predictors(threshold: int=6, exclude_columns: list=['Gross Profit (FY)', 'Enterprise Value (MRQ)']) -> pd.DataFrame:
@@ -600,17 +613,22 @@ class PortfolioRecommendation(EquityData, DataVisualization):
             standard_col = col[:-6]
             scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
 
-        scored_equities['Aggregated'] = scored_equities[scored_equities.columns].mean(axis=1, numeric_only=True)
-        self.rank(scored_equities, 'Aggregated', lower_quantile=0.01, upper_quantile=0.99)
+        scored_equities['Aggregated'] = scored_equities[scored_equities.columns].sum(axis=1, numeric_only=True)
+        
+        degree_of_diversification = self.compute_diversification()
+        lower_quantile = degree_of_diversification[0]
+        upper_quantile = degree_of_diversification[1]
+
+        self.rank(scored_equities, 'Aggregated', lower_quantile=lower_quantile, upper_quantile=upper_quantile) # NOTE: we control the degree of portfolio diversification via the number of outliers
         scored_equities = scored_equities.drop(columns=['Aggregated'])
 
         scored_equities['Ticker'] = before_weighting['Ticker']
         scored_equities['Sector'] = complete_df['Sector']
         scored_equities = scored_equities.sort_values(by='Aggregated Score', ascending=False)
-
-        top_predictors = extract_top_predictors()
         
-        vars = [predictor + ' Score' for predictor in top_predictors]
+        top_predictors_narrowest_adjusted = extract_top_predictors()
+
+        vars = [predictor + ' Score' for predictor in top_predictors_narrowest_adjusted]
         vars.append('Aggregated Score')
         vars.append('Ticker')
         vars.append('Sector')
@@ -620,7 +638,7 @@ class PortfolioRecommendation(EquityData, DataVisualization):
             if col != 'Aggregated Score' and col != 'Sector':
                 scored_equities[col] = before_weighting[col] # restoring the non-weighted normalized values for clarity
 
-        scored_equities = scored_equities[:50]
+        scored_equities = scored_equities[:self.portfolio_size]
         scored_equities['Funds Allocated'] = round((scored_equities['Aggregated Score'] / sum(scored_equities['Aggregated Score'])) * self.initial_capital, 2)
         scored_equities['Percentage Allocated'] = (scored_equities['Funds Allocated'] / self.initial_capital) * 100
 
@@ -636,6 +654,12 @@ class PortfolioRecommendation(EquityData, DataVisualization):
             'EBITDA (TTM) Score']
 
         scored_equities = scored_equities.loc[:, keep_columns]
+
+        # diversification can be controlled by the ranking function!
+        # where from 0 to 1 can just use quartiles
+        #display(Markdown("# My Portfolio"))
+        #scored_equities
+        scored_equities = scored_equities.rename_axis('S&P500 Position')
 
         # diversification can be controlled by the ranking function!
         # where from 0 to 1 can just use quartiles

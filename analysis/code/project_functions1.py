@@ -42,7 +42,8 @@ class EquityData:
         self.common_data_path = common_data_path
         self.extension = extension
 
-    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[], additional_data: pd.DataFrame=None, additional_column: str=None) -> pd.DataFrame:
+    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[],
+                         additional_data: pd.DataFrame=None, additional_column: str=None, dropna: bool=False) -> pd.DataFrame:
         """Uses method chaining to read in the raw data up to a specified number of columns while also dropping any desired columns
         
         :file_name: the name of the file, with the extension included
@@ -59,7 +60,6 @@ class EquityData:
                 pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
                 .iloc[:number_of_rows]
                 .drop(columns=exclude_columns)
-                .dropna()
                 )
             return df
         
@@ -72,6 +72,9 @@ class EquityData:
         else:
             df = method_chain()
         
+        if dropna:
+            df = df.dropna() 
+        
         if 'Unnamed: 0' in df.columns:
             df = df.drop(columns=['Unnamed: 0'])
         
@@ -81,43 +84,24 @@ class EquityData:
         for df, file_name in zip(data, file_names):
             df.to_csv(directory_path + "processed_" + self.common_data_path + file_name + self.extension)
     
-    def combined_data_frame(self, data: list, drop_strings: bool=False) -> pd.DataFrame:
-        df = (pd.concat(data, axis=1)
-            .dropna()
-            )
+    def combined_data_frame(self, data: list, dropna: bool=True) -> pd.DataFrame:
+        df = pd.concat(data, axis=1)
+        
+        if dropna:
+            df = df.dropna(thresh=33)
+            
         df = df.loc[:,~df.columns.duplicated()].copy()
         return df
 
 # NOTE: ANALYSIS FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class QuantitativeAnalysis:
-    def __init__(self, number_of_companies: int=500, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
-                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.4, investment_strategy: str="Growth"):
+    def __init__(self, number_of_companies: int=500):
         """Includes several analysis functions that process select data across all data sets
 
-        :number_of_companies: the number of companies included in the sample, with the default being those from the S&P500 Index\n
-        :initial_capital: the initial amount of cash to be invested by the client, in USD\n
-        :capital_per_period: the amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD\n
-        :period: the frequency (in days) at which additional cash is invested, if desired\n
-        :dividends_importance: specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends\n
-        :preferred_industries: specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio\n
-        :volatility_tolerance: accepts a range of values from 0 to 1, with 1 implying maximum volatility tolerance (i.e. the client is willing to lose 100% of their investment to take on more risk)\n
-        :preferred_companies: specifies a list of companies that the analysis algorithms will accomodate in the final portfolio irrespective of their score\n
-        :diversification: accepts a range of values from 0 to 1, with 1 implying maximum diversification (i.e. funds will be distributed evenly across all industries and equally among all companies)\n
-        :investment_strategy: specifies the investment strategy that will guide the output of the analysis algorithms, in which this analysis notebook strictly focuses on growth investing\n
-        :raises: ValueError if an input parameter does not satisfy its accepted range
+        :number_of_companies: the number of companies included in the sample, with the default being those from the S&P500 Index
         """
         
         self.number_of_companies = number_of_companies
-        self.initial_capital = initial_capital
-        self.capital_per_period = capital_per_period
-        self.period = period
-        self.dividends_importance = dividends_importance
-        self.preferred_industries = preferred_industries
-        self.volatility_tolerance = volatility_tolerance
-        self.preferred_companies = preferred_companies
-        self.diversification = diversification
-        self.preferred_companies = preferred_industries
-        self.investment_strategy = investment_strategy
         
     def lin_reg_coef_determination(self, df: pd.DataFrame, X: str, y: str='3-Month Performance', filter_outliers: bool=True) -> np.float64:
         if filter_outliers:
@@ -311,6 +295,7 @@ class DataVisualization(QuantitativeAnalysis):
         :returns: a density plot
         """
         df = df.select_dtypes(exclude='object')[:self.number_of_companies]
+        df = df.dropna() # mandatory for the function to work
         
         if normalization:
             for column in cols:
@@ -340,6 +325,7 @@ class DataVisualization(QuantitativeAnalysis):
         :returns: a density plot
         """
         df = df.select_dtypes(exclude='object')[:self.number_of_companies]
+        df = df.dropna() # mandatory for the function to work
         n = len(df)
         
         for column in df.columns:
@@ -371,6 +357,8 @@ class DataVisualization(QuantitativeAnalysis):
         :correlation_plot: if true, creates a correlation plot instead of a heatmap plot
         :returns: a heatmap plot
         """
+        df = df.dropna() # to prevent gaps in the heatmap
+        
         def construct_correlation_plot() -> plt.graph_objs._figure.Figure:
             """A helper function to convert the heat map into a correlation plot"""
             # Correlation
@@ -435,7 +423,7 @@ class DataVisualization(QuantitativeAnalysis):
             rows=rows,
             cols=cols,
             shared_yaxes=True,
-            subplot_titles = ['Sorted by ' + predictor for set in predictors for predictor in set],
+            subplot_titles = [predictor for set in predictors for predictor in set],
             horizontal_spacing=horizontal_spacing,
             vertical_spacing=vertical_spacing,
             )
@@ -557,9 +545,35 @@ class DataVisualization(QuantitativeAnalysis):
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
 
-class PortfolioConstruction(DataVisualization):
-    def __init__(self):
+class PortfolioRecommendation(DataVisualization):
+    def __init__(self, central_df: pd.DataFrame, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
+                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.4, investment_strategy: str="Growth"):
         DataVisualization.__init__(self)
+        
+        """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied
+        :central_df: the dataframe with all the asset scores
+        :initial_capital: the initial amount of cash to be invested by the client, in USD\n
+        :capital_per_period: the amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD\n
+        :period: the frequency (in days) at which additional cash is invested, if desired\n
+        :dividends_importance: specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends\n
+        :preferred_industries: specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio\n
+        :volatility_tolerance: accepts a range of values from 0 to 1, with 1 implying maximum volatility tolerance (i.e. the client is willing to lose 100% of their investment to take on more risk)\n
+        :preferred_companies: specifies a list of companies that the analysis algorithms will accomodate in the final portfolio irrespective of their score\n
+        :diversification: accepts a range of values from 0 to 1, with 1 implying maximum diversification (i.e. funds will be distributed evenly across all industries and equally among all companies)\n
+        :investment_strategy: specifies the investment strategy that will guide the output of the analysis algorithms, in which this analysis notebook strictly focuses on growth investing\n
+        :raises: ValueError if an input parameter does not satisfy its accepted range
+        """
+        
+        self.initial_capital = initial_capital
+        self.capital_per_period = capital_per_period
+        self.period = period
+        self.dividends_importance = dividends_importance
+        self.preferred_industries = preferred_industries
+        self.volatility_tolerance = volatility_tolerance
+        self.preferred_companies = preferred_companies
+        self.diversification = diversification
+        self.preferred_companies = preferred_industries
+        self.investment_strategy = investment_strategy
     
     def asset_allocation(self):
         pass

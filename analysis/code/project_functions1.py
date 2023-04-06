@@ -545,13 +545,14 @@ class DataVisualization(QuantitativeAnalysis):
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
 
-class PortfolioRecommendation(DataVisualization):
-    def __init__(self, central_df: pd.DataFrame, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
+class PortfolioRecommendation(EquityData, DataVisualization):
+    def __init__(self, portfolio_size: int=50, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
                 volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.4, investment_strategy: str="Growth"):
+        EquityData.__init__(self)
         DataVisualization.__init__(self)
         
         """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied
-        :central_df: the dataframe with all the asset scores
+        :portfolio_size: the number of assets included in the final portfolio
         :initial_capital: the initial amount of cash to be invested by the client, in USD\n
         :capital_per_period: the amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD\n
         :period: the frequency (in days) at which additional cash is invested, if desired\n
@@ -565,6 +566,7 @@ class PortfolioRecommendation(DataVisualization):
         """
         
         self.initial_capital = initial_capital
+        self.portfolio_size = portfolio_size
         self.capital_per_period = capital_per_period
         self.period = period
         self.dividends_importance = dividends_importance
@@ -576,7 +578,69 @@ class PortfolioRecommendation(DataVisualization):
         self.investment_strategy = investment_strategy
     
     def asset_allocation(self):
-        pass
+        equities = self.EquityData("processed_us_equities_tradingview_data_")
+        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/")
+        complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
+        
+        score_count_df = self.extract_corr_plot_counts(complete_df).T
+        
+        def extract_top_predictors(threshold: int=6, exclude_columns: list=['Gross Profit (FY)', 'Enterprise Value (MRQ)']) -> pd.DataFrame:
+            score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
+            
+            top_predictors_narrowest = score_count_df[score_count_df['Count'] >= threshold].index
+            top_predictors_narrowest = top_predictors_narrowest.drop(exclude_columns)
+            
+            return top_predictors_narrowest
+        
+        score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
+        before_weighting = scored_equities
+        scored_equities = scored_equities.select_dtypes(exclude='object')
+
+        for col in scored_equities.columns:
+            standard_col = col[:-6]
+            scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
+
+        scored_equities['Aggregated'] = scored_equities[scored_equities.columns].mean(axis=1, numeric_only=True)
+        self.rank(scored_equities, 'Aggregated', lower_quantile=0.01, upper_quantile=0.99)
+        scored_equities = scored_equities.drop(columns=['Aggregated'])
+
+        scored_equities['Ticker'] = before_weighting['Ticker']
+        scored_equities['Sector'] = complete_df['Sector']
+        scored_equities = scored_equities.sort_values(by='Aggregated Score', ascending=False)
+
+        top_predictors = extract_top_predictors()
+        
+        vars = [predictor + ' Score' for predictor in top_predictors]
+        vars.append('Aggregated Score')
+        vars.append('Ticker')
+        vars.append('Sector')
+        scored_equities = scored_equities[vars]
+        #print(scored_equities.columns)
+        for col in scored_equities.columns:
+            if col != 'Aggregated Score' and col != 'Sector':
+                scored_equities[col] = before_weighting[col] # restoring the non-weighted normalized values for clarity
+
+        scored_equities = scored_equities[:50]
+        scored_equities['Funds Allocated'] = round((scored_equities['Aggregated Score'] / sum(scored_equities['Aggregated Score'])) * self.initial_capital, 2)
+        scored_equities['Percentage Allocated'] = (scored_equities['Funds Allocated'] / self.initial_capital) * 100
+
+        keep_columns = [
+            'Ticker',
+            'Funds Allocated',
+            'Percentage Allocated',
+            'Sector',
+            'Aggregated Score',
+            'Market Capitalization Score',
+            'Gross Profit (MRQ) Score',
+            'Total Current Assets (MRQ) Score',
+            'EBITDA (TTM) Score']
+
+        scored_equities = scored_equities.loc[:, keep_columns]
+
+        # diversification can be controlled by the ranking function!
+        # where from 0 to 1 can just use quartiles
+        display(Markdown("# My Portfolio"))
+        return scored_equities
     
     def construct_portfolio(self):
         pass

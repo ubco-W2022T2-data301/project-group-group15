@@ -578,7 +578,6 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         self.investment_strategy = investment_strategy
     
     def compute_diversification(self):
-        # higher the number, lower the diversification
         if 0.9 <= self.diversification <= 1: # highest degree of diversification (evenly split funds)
             return 0.3, 0.7
         elif 0.75 <= self.diversification < 0.9:
@@ -590,7 +589,7 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         else:
             return 0.011, 0.999 # lowest degree of diversification (do not split evenly split funds for many companies)
     
-    def asset_allocation(self):
+    def asset_allocation(self) -> pd.DataFrame:
         equities = EquityData("processed_us_equities_tradingview_data_")
         scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/")
         complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
@@ -633,7 +632,6 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         vars.append('Ticker')
         vars.append('Sector')
         scored_equities = scored_equities[vars]
-        #print(scored_equities.columns)
         for col in scored_equities.columns:
             if col != 'Aggregated Score' and col != 'Sector':
                 scored_equities[col] = before_weighting[col] # restoring the non-weighted normalized values for clarity
@@ -654,15 +652,8 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
             'EBITDA (TTM) Score']
 
         scored_equities = scored_equities.loc[:, keep_columns]
-
-        # diversification can be controlled by the ranking function!
-        # where from 0 to 1 can just use quartiles
-        #display(Markdown("# My Portfolio"))
-        #scored_equities
         scored_equities = scored_equities.rename_axis('S&P500 Position')
-
-        # diversification can be controlled by the ranking function!
-        # where from 0 to 1 can just use quartiles
+        
         display(Markdown("# My Portfolio"))
         return scored_equities
     

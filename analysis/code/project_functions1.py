@@ -160,10 +160,10 @@ class QuantitativeAnalysis:
         X = df[predictors]
         y = df[target_y]
 
-        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
         mlr = LinearRegression()
-        mlr.fit(x_train, y_train)
-        y_pred_mlr = mlr.predict(x_test)
+        mlr.fit(X_train, y_train)
+        y_pred_mlr = mlr.predict(X_test)
 
         mlr_diff = pd.DataFrame({'Actual value': y_test, 'Predicted value': y_pred_mlr})
         mlr_diff.head()
@@ -172,13 +172,15 @@ class QuantitativeAnalysis:
         meanSqErr = metrics.mean_squared_error(y_test, y_pred_mlr)
         rootMeanSqErr = np.sqrt(metrics.mean_squared_error(y_test, y_pred_mlr))
         
-        results = {'R squared': mlr.score(X,y) * 100, 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
+        results = {'R squared': mlr.score(X,y), 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
         results_df = pd.DataFrame(results, index=['Model Results'])
         return results_df
     
     def rank(self, df: pd.DataFrame, col: str, normalize_only: bool=True, threshold: float=1.5,
              below_threshold: bool=True, filter_outliers: bool=True, normalize_after: bool=False,
-             lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False) -> None:
+             lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False,
+             inverse_normalization_cols: list()=['Price to Revenue Ratio (TTM)', 'Price to Earnings Ratio (TTM)', 'Total Debt (MRQ)', 'Net Debt (MRQ)', 'Debt to Equity Ratio (MRQ)']) -> None:
+        
         """The scoring algorithm for determining the weight of each equity in the construction of the portfolio for this specific column examined.
         Features a custom outlier-filtering algorithm that is robust to outliers in the data set while still returning normalized values.
         Normalizes one column at a time.
@@ -234,6 +236,11 @@ class QuantitativeAnalysis:
         
         self.y = np.array(self.x).reshape(-1, 1)
         self.y = preprocessing.MinMaxScaler().fit_transform(self.y)
+        
+        if col in inverse_normalization_cols:
+            # NOTE: if it is better if a financial variable has a lower score, then the minimum is assigned a score of 1, and maximum a score of 0
+            # therefore, subtracting each element in the array from 1 will return the inverse of the original [0, 1] feature range
+            self.y = 1 - self.y
  
         if inplace: # NOTE: this is currently an unstable feature and does not give accurate results
             df.drop(columns=[new_col], inplace=True) # directly modifying the original column, so the new column should be removed
@@ -591,7 +598,7 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
     
     def asset_allocation(self) -> pd.DataFrame:
         equities = EquityData("processed_us_equities_tradingview_data_")
-        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/")
+        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/") # update this to inverse normalization for ratios where lower is better
         complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
 
         score_count_df = self.extract_corr_plot_counts(complete_df).T
@@ -608,9 +615,9 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         before_weighting = scored_equities
         scored_equities = scored_equities.select_dtypes(exclude='object')
 
-        for col in scored_equities.columns:
-            standard_col = col[:-6]
-            scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
+        #for col in scored_equities.columns:
+        #    standard_col = col[:-6]
+        #    scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
 
         scored_equities['Aggregated'] = scored_equities[scored_equities.columns].sum(axis=1, numeric_only=True)
         
@@ -622,15 +629,17 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         scored_equities = scored_equities.drop(columns=['Aggregated'])
 
         scored_equities['Ticker'] = before_weighting['Ticker']
-        scored_equities['Sector'] = complete_df['Sector']
-        scored_equities = scored_equities.sort_values(by='Aggregated Score', ascending=False)
+        scored_equities['Sector'] = before_weighting['Sector']
+        scored_equities['Description'] = before_weighting['Description']
         
+        scored_equities = scored_equities.sort_values(by='Aggregated Score', ascending=False)
         top_predictors_narrowest_adjusted = extract_top_predictors()
 
         vars = [predictor + ' Score' for predictor in top_predictors_narrowest_adjusted]
         vars.append('Aggregated Score')
         vars.append('Ticker')
         vars.append('Sector')
+        vars.append('Description')
         scored_equities = scored_equities[vars]
         for col in scored_equities.columns:
             if col != 'Aggregated Score' and col != 'Sector':
@@ -639,18 +648,21 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         scored_equities = scored_equities[:self.portfolio_size]
         scored_equities['Funds Allocated'] = round((scored_equities['Aggregated Score'] / sum(scored_equities['Aggregated Score'])) * self.initial_capital, 2)
         scored_equities['Percentage Allocated'] = (scored_equities['Funds Allocated'] / self.initial_capital) * 100
-
+        
+        scored_equities = scored_equities.rename(columns={"Description": "Name"})
+        
         keep_columns = [
             'Ticker',
+            'Name',
+            'Sector',
             'Funds Allocated',
             'Percentage Allocated',
-            'Sector',
             'Aggregated Score',
             'Market Capitalization Score',
             'Gross Profit (MRQ) Score',
             'Total Current Assets (MRQ) Score',
             'EBITDA (TTM) Score']
-
+    
         scored_equities = scored_equities.loc[:, keep_columns]
         scored_equities = scored_equities.rename_axis('S&P500 Position')
         

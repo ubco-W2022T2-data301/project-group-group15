@@ -17,6 +17,7 @@ from scipy import stats
 import plotly.io as pio
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from plotly.subplots import make_subplots
 
 @dataclass
 class ValueRange:
@@ -41,7 +42,8 @@ class EquityData:
         self.common_data_path = common_data_path
         self.extension = extension
 
-    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[]) -> pd.DataFrame:
+    def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[],
+                         additional_data: pd.DataFrame=None, additional_column: str=None, dropna: bool=False) -> pd.DataFrame:
         """Uses method chaining to read in the raw data up to a specified number of columns while also dropping any desired columns
         
         :file_name: the name of the file, with the extension included
@@ -50,50 +52,56 @@ class EquityData:
         :returns: a new Pandas DataFrame
         """
         assert type(number_of_rows) == int, "Number of rows must be an integer"
+        df = pd.DataFrame()
         
-        self.df = (
-            pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
-            .iloc[:number_of_rows]
-            .drop(columns=exclude_columns)
-            .dropna()
-            )
+        def method_chain():
+            """A helper function to create a central method chain"""
+            df = (
+                pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
+                .iloc[:number_of_rows]
+                .drop(columns=exclude_columns)
+                )
+            return df
         
-        return self.df
+        if additional_data is not None and additional_column is not None:
+            df = (
+                method_chain()
+                .assign(new_col=additional_data[additional_column])
+                .rename(columns={"new_col": additional_column})
+                )
+        else:
+            df = method_chain()
+        
+        if dropna:
+            df = df.dropna() 
+        
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop(columns=['Unnamed: 0'])
+        
+        return df
     
-    def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/"):
+    def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/") -> None:
         for df, file_name in zip(data, file_names):
             df.to_csv(directory_path + "processed_" + self.common_data_path + file_name + self.extension)
+    
+    def combined_data_frame(self, data: list, dropna: bool=True) -> pd.DataFrame:
+        df = pd.concat(data, axis=1)
+        
+        if dropna:
+            df = df.dropna(thresh=33)
+            
+        df = df.loc[:,~df.columns.duplicated()].copy()
+        return df
 
 # NOTE: ANALYSIS FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class QuantitativeAnalysis:
-    def __init__(self, number_of_companies: int=500, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
-                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.4, investment_strategy: str="Growth"):
+    def __init__(self, number_of_companies: int=500):
         """Includes several analysis functions that process select data across all data sets
 
-        :number_of_companies: the number of companies included in the sample, with the default being those from the S&P500 Index\n
-        :initial_capital: the initial amount of cash to be invested by the client, in USD\n
-        :capital_per_period: the amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD\n
-        :period: the frequency (in days) at which additional cash is invested, if desired\n
-        :dividends_importance: specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends\n
-        :preferred_industries: specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio\n
-        :volatility_tolerance: accepts a range of values from 0 to 1, with 1 implying maximum volatility tolerance (i.e. the client is willing to lose 100% of their investment to take on more risk)\n
-        :preferred_companies: specifies a list of companies that the analysis algorithms will accomodate in the final portfolio irrespective of their score\n
-        :diversification: accepts a range of values from 0 to 1, with 1 implying maximum diversification (i.e. funds will be distributed evenly across all industries and equally among all companies)\n
-        :investment_strategy: specifies the investment strategy that will guide the output of the analysis algorithms, in which this analysis notebook strictly focuses on growth investing\n
-        :raises: ValueError if an input parameter does not satisfy its accepted range
+        :number_of_companies: the number of companies included in the sample, with the default being those from the S&P500 Index
         """
         
         self.number_of_companies = number_of_companies
-        self.initial_capital = initial_capital
-        self.capital_per_period = capital_per_period
-        self.period = period
-        self.dividends_importance = dividends_importance
-        self.preferred_industries = preferred_industries
-        self.volatility_tolerance = volatility_tolerance
-        self.preferred_companies = preferred_companies
-        self.diversification = diversification
-        self.preferred_companies = preferred_industries
-        self.investment_strategy = investment_strategy
         
     def lin_reg_coef_determination(self, df: pd.DataFrame, X: str, y: str='3-Month Performance', filter_outliers: bool=True) -> np.float64:
         if filter_outliers:
@@ -110,13 +118,13 @@ class QuantitativeAnalysis:
         else:
             y = y[:len(X)]
         
-        self.X = np.array(X).reshape(-1, 1)
-        self.y = np.array(y).reshape(-1, 1)
+        X = np.array(X).reshape(-1, 1)
+        y = np.array(y).reshape(-1, 1)
         
         model = LinearRegression()
-        model.fit(self.X, self.y)
+        model.fit(X, y)
          
-        return model.score(self.X, self.y)
+        return model.score(X, y)
 
     def get_lin_reg_coefs(self, df: pd.DataFrame, x_values: list(), y_value: str='3-Month Performance') -> pd.DataFrame:
         """Returns a Pandas DataFrame with the coefficients of determination for each y-on-x regression
@@ -128,14 +136,14 @@ class QuantitativeAnalysis:
         :returns: A Pandas DataFrame with the coefficients of determination for each y-on-x regression\n
         
         """
-        self.coef_dict = dict.fromkeys(x_values, 0) # initialize a dict with all the columns assigned to a value of 0
+        coef_dict = dict.fromkeys(x_values, 0) # initialize a dict with all the columns assigned to a value of 0
         
         for predictor in tqdm(x_values, desc="Constructing linear regression models", total=len(x_values)):
-            self.coef_dict[predictor] = self.lin_reg_coef_determination(df, X=predictor, y=y_value)
+            coef_dict[predictor] = self.lin_reg_coef_determination(df, X=predictor, y=y_value)
         
-        self.processed_df = pd.DataFrame(list(zip(self.coef_dict.keys(), self.coef_dict.values())), columns=[f'Equity Data Against {y_value}', 'Coefficient of Determination'])
+        processed_df = pd.DataFrame(list(zip(coef_dict.keys(), coef_dict.values())), columns=[f'Equity Data Against {y_value}', 'Coefficient of Determination'])
         
-        return self.processed_df
+        return processed_df
         
     def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization') -> pd.DataFrame:
         """Consturcts a multiple linear regression model
@@ -152,10 +160,10 @@ class QuantitativeAnalysis:
         X = df[predictors]
         y = df[target_y]
 
-        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
         mlr = LinearRegression()
-        mlr.fit(x_train, y_train)
-        y_pred_mlr = mlr.predict(x_test)
+        mlr.fit(X_train, y_train)
+        y_pred_mlr = mlr.predict(X_test)
 
         mlr_diff = pd.DataFrame({'Actual value': y_test, 'Predicted value': y_pred_mlr})
         mlr_diff.head()
@@ -164,15 +172,18 @@ class QuantitativeAnalysis:
         meanSqErr = metrics.mean_squared_error(y_test, y_pred_mlr)
         rootMeanSqErr = np.sqrt(metrics.mean_squared_error(y_test, y_pred_mlr))
         
-        results = {'R squared': mlr.score(X,y) * 100, 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
+        results = {'R squared': mlr.score(X,y), 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
         results_df = pd.DataFrame(results, index=['Model Results'])
         return results_df
     
     def rank(self, df: pd.DataFrame, col: str, normalize_only: bool=True, threshold: float=1.5,
              below_threshold: bool=True, filter_outliers: bool=True, normalize_after: bool=False,
-             lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False) -> None:
+             lower_quantile: float=0.05, upper_quantile: float=0.95, inplace: bool=False,
+             inverse_normalization_cols: list()=['Price to Revenue Ratio (TTM)', 'Price to Earnings Ratio (TTM)', 'Total Debt (MRQ)', 'Net Debt (MRQ)', 'Debt to Equity Ratio (MRQ)']) -> None:
+        
         """The scoring algorithm for determining the weight of each equity in the construction of the portfolio for this specific column examined.
         Features a custom outlier-filtering algorithm that is robust to outliers in the data set while still returning normalized values.
+        Normalizes one column at a time.
         
         :df: The original dataframe\n
         :col: The name of the column being extracted from the dataframe provided\n
@@ -225,6 +236,11 @@ class QuantitativeAnalysis:
         
         self.y = np.array(self.x).reshape(-1, 1)
         self.y = preprocessing.MinMaxScaler().fit_transform(self.y)
+        
+        if col in inverse_normalization_cols:
+            # NOTE: if it is better if a financial variable has a lower score, then the minimum is assigned a score of 1, and maximum a score of 0
+            # therefore, subtracting each element in the array from 1 will return the inverse of the original [0, 1] feature range
+            self.y = 1 - self.y
  
         if inplace: # NOTE: this is currently an unstable feature and does not give accurate results
             df.drop(columns=[new_col], inplace=True) # directly modifying the original column, so the new column should be removed
@@ -248,13 +264,67 @@ class QuantitativeAnalysis:
         df = df[(df[col] <= upper_fence) & (df[col] >= lower_fence)]
         
         return df
+    
+    def extract_corr_plot_counts(self, df: pd.DataFrame, correlation_threshold: int=0.7) -> pd.DataFrame:
+        corr = df.corr(numeric_only=True)
+
+        mask = np.zeros_like(corr, dtype=bool)
+        mask[np.triu_indices_from(mask)] = True
+        corr_df = corr.mask(mask).dropna(how='all').dropna('columns', how='all')
+
+        cols = [col for col in corr_df]
+        score_count_df = corr_df
+        score_count_df['Count'] = 0
+        score_count_df = score_count_df.drop(columns=cols)
+        score_count_df = score_count_df.T
+        score_count_df['Price'] = 0
+        score_count_df.columns = score_count_df.columns
+
+        for col in corr_df.columns:
+            for row in corr_df.index:
+                current_score = abs(corr_df.loc[row, col])
+                if current_score != 1 and current_score >= correlation_threshold:
+                    score_count_df[col] += 1
+                    score_count_df[row] += 1
+        
+        return score_count_df
 
 # NOTE: VISUALIZATION FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class DataVisualization(QuantitativeAnalysis):
     def __init__(self):
         QuantitativeAnalysis.__init__(self)
 
-    def score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
+    def score_density_plot(self, df: pd.DataFrame, cols: list(), title: str="Density Plot", normalization: bool=True, search_for_score: bool=True) -> plt.graph_objs._figure.Figure:
+        """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below
+        
+        :df: a Pandas DataFrame of equity data
+        :cols: a list of column names to be plotted
+        :returns: a density plot
+        """
+        df = df.select_dtypes(exclude='object')[:self.number_of_companies]
+        df = df.dropna() # mandatory for the function to work
+        
+        if normalization:
+            for column in cols:
+                self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
+
+        if search_for_score:
+            hist_data = [df[x + " Score"] for x in cols]
+            group_labels = [x + " Score" for x in cols]
+        else:
+            hist_data = [df[x] for x in cols]
+            group_labels = [x for x in cols]
+        colors = ['#94F3E4', '#333F44', '#37AA9C']
+
+        fig = ff.create_distplot(hist_data, group_labels, show_hist=False, colors=colors)
+        fig.update_layout(title_text=title, template='plotly_dark')
+
+        fig.update_xaxes(title='Score (0 = low, 1 = high)')
+        fig.update_yaxes(title='Density')
+        
+        return fig
+
+    def legacy_score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below
         
         :df: a Pandas DataFrame of equity data
@@ -262,25 +332,26 @@ class DataVisualization(QuantitativeAnalysis):
         :returns: a density plot
         """
         df = df.select_dtypes(exclude='object')[:self.number_of_companies]
-        self.n = len(df)
+        df = df.dropna() # mandatory for the function to work
+        n = len(df)
         
         for column in df.columns:
             self.rank(df, col=column, upper_quantile=0.99, lower_quantile=0.01)
             
-        self.score_data_length = len(df.axes[1])
-        self.input_df = df.T[int(self.score_data_length/2 + 1):].T
-        self.hist_data = [self.input_df[x] for x in self.input_df.columns]
+        score_data_length = len(df.axes[1])
+        input_df = df.T[int(score_data_length/2 + 1):].T
+        hist_data = [input_df[x] for x in input_df.columns]
         
-        self.group_labels = [x for x in self.input_df.columns]
-        self.colors = ['#333F44', '#37AA9C', '#94F3E4']
+        group_labels = [x for x in input_df.columns]
+        colors = ['#333F44', '#37AA9C', '#94F3E4']
 
-        self.fig = ff.create_distplot(self.hist_data, self.group_labels, show_hist=False, colors=self.colors)
-        self.fig.update_layout(title_text=f'Distribution for Normalized {data_name} of {self.n} Companies in the S&P500', template='plotly_dark')
+        fig = ff.create_distplot(hist_data, group_labels, show_hist=False, colors=colors)
+        fig.update_layout(title_text=f'Distribution for Normalized {data_name} of {n} Companies in the S&P500', template='plotly_dark')
         
-        self.fig.update_xaxes(title='Score (0 = low, 1 = high)')
-        self.fig.update_yaxes(title='Density')
+        fig.update_xaxes(title='Score (0 = low, 1 = high)')
+        fig.update_yaxes(title='Density')
         
-        return self.fig
+        return fig
 
     def heatmap_plot(self, df: pd.DataFrame, title: str='Heat Map', number_of_companies: int=500, number_of_subset_companies: int=20,
                     plot_last_companies: bool=False, sort_by: str='Market Capitalization', correlation_plot: bool=False,
@@ -293,64 +364,151 @@ class DataVisualization(QuantitativeAnalysis):
         :correlation_plot: if true, creates a correlation plot instead of a heatmap plot
         :returns: a heatmap plot
         """
-        def construct_correlation_plot(self) -> plt.graph_objs._figure.Figure:
+        df = df.dropna() # to prevent gaps in the heatmap
+        
+        def construct_correlation_plot() -> plt.graph_objs._figure.Figure:
             """A helper function to convert the heat map into a correlation plot"""
             # Correlation
-            self.df_corr = df.corr(numeric_only=True).round(1)
+            df_corr = df.corr(numeric_only=True).round(1)
             # Conver to a triangular correlation plot
-            self.mask = np.zeros_like(self.df_corr, dtype=bool)
-            self.mask[np.triu_indices_from(self.mask)] = True
+            mask = np.zeros_like(df_corr, dtype=bool)
+            mask[np.triu_indices_from(mask)] = True
             # Final visualization
-            self.df_corr_viz = self.df_corr.mask(self.mask).dropna(how='all').dropna('columns', how='all')
+            df_corr_viz = df_corr.mask(mask).dropna(how='all').dropna('columns', how='all')
             
-            self.fig = px.imshow(
-                self.df_corr_viz,
+            fig = px.imshow(
+                df_corr_viz,
                 text_auto=True,
                 template='plotly_dark',
                 title=title,
                 width=plot_width,
                 height=plot_height)
             
-            return self.fig
+            return fig
         
         df = df.sort_values(by=sort_by, ascending=False)
     
         if correlation_plot:            
-            return construct_correlation_plot(self)
+            return construct_correlation_plot()
             
         else:
             df = df[:number_of_companies] # selecting only x number of companies in order
                 
-            self.z = []
-            self.tickers = df['Ticker']
-            df.index = df['Ticker']
+            z = []
+            tickers = df['Ticker']
+            index = df['Ticker']
             df = df.select_dtypes(exclude='object')
             for column in df.columns:
                 self.rank(df, col=column) # scoring the data
                         
             if plot_last_companies:
                 df = df[-number_of_subset_companies:]
-                self.tickers = self.tickers[-number_of_subset_companies:]
+                tickers = tickers[-number_of_subset_companies:]
             else:
                 df = df[:number_of_subset_companies] # the normalization algorithm has been applied on number_of_companies but we choose a subset from that
-                self.tickers = self.tickers[:number_of_subset_companies]
+                tickers = tickers[:number_of_subset_companies]
             
-            self.score_data_length = len(df.axes[1])
-            self.input_df = df.T[int(self.score_data_length/2 + 1):].T
-            for column in self.input_df.columns:
-                self.z.append(self.input_df[column].round(3))
+            score_data_length = len(df.axes[1])
+            input_df = df.T[int(score_data_length/2 + 1):].T
+            for column in input_df.columns:
+                z.append(input_df[column].round(3))
             
-            self.fig = px.imshow(
-                self.z,
+            fig = px.imshow(
+                z,
                 text_auto=True,
                 template='plotly_dark',
                 title=title,
-                x=[x for x in self.tickers], 
-                y=[x for x in df.columns[int(self.score_data_length/2 + 1):]],
+                x=[x for x in tickers], 
+                y=[x for x in df.columns[int(score_data_length/2 + 1):]],
                 width=plot_width,
                 height=plot_height)
         
-        return self.fig
+        return fig
+    
+    def subplot_generator(self, df: pd.DataFrame, predictors: list, title: str, height_reduction_factor = 8, width_multiplier = 1, horizontal_spacing= 0.02, vertical_spacing = 0.005, rows=4, cols=4):
+        fig = make_subplots(
+            rows=rows,
+            cols=cols,
+            shared_yaxes=True,
+            subplot_titles = [predictor for set in predictors for predictor in set],
+            horizontal_spacing=horizontal_spacing,
+            vertical_spacing=vertical_spacing,
+            )
+        
+        def pair_construction(row: int, col: int, predictor) -> None:
+            row += 1
+            col += 1
+            
+            fig.add_trace(
+            trace=self.heatmap_plot(
+            df=df,
+            plot_last_companies=False,
+            sort_by=predictor).data[0],
+            row = row,
+            col = col
+        )
+            fig.add_trace(
+            trace=self.heatmap_plot(
+            df=df,
+            plot_last_companies=True,
+            sort_by=predictor).data[0],
+            row = row,
+            col = col
+        )
+        
+        for row in range(rows):
+            for col in range(cols):
+                pair_construction(row, col, predictors[row][col])
+
+        height_multiplier = rows*cols - height_reduction_factor
+        fig.update_layout(
+            title_text=title,
+            template='plotly_dark',
+            width=1500*width_multiplier,
+            height=1500*height_multiplier)
+        
+        return fig
+
+    def binary_subplot_generator(self, df: pd.DataFrame, predictors: list, title: str, height_reduction_factor = 8, width_multiplier = 1, horizontal_spacing= 0.02, vertical_spacing = 0.005, rows=4, cols=2):
+        fig = make_subplots(
+            rows=rows,
+            cols=cols,
+            shared_yaxes=True,
+            column_titles=['Top 20 Companies', 'Bottom 20 Companies'],
+            row_titles = ['Sorted by ' + predictor for predictor in predictors],
+            horizontal_spacing=horizontal_spacing,
+            vertical_spacing=vertical_spacing,
+            )
+        
+        for col in range(1, cols+1):
+            for row, predictor in zip(range(1, rows+1), predictors):
+                if (col % 2 == 0):
+                    fig.add_trace(
+                    trace=self.heatmap_plot(
+                    df=df,
+                    plot_last_companies=True,
+                    sort_by=predictor).data[0],
+                    row = row,
+                    col = col
+                )
+                else:
+                    fig.add_trace(
+                    trace=self.heatmap_plot(
+                    df=df,
+                    plot_last_companies=False,
+                    sort_by=predictor).data[0],
+                    row = row,
+                    col = col
+                )
+
+        height_multiplier = rows*cols - height_reduction_factor
+        fig.update_layout(
+            title_text=title,
+            template='plotly_dark',
+            width=1500*width_multiplier,
+            height=1500*height_multiplier)
+        
+        return fig
 
     def scatter_3d(self, df: pd.DataFrame, x: str, y: str, z: str) -> plt.graph_objs._figure.Figure:
         """Constructs a 3D interactive plot of equity data on 3 axes
@@ -381,28 +539,135 @@ class DataVisualization(QuantitativeAnalysis):
         :data_name: the name of the data being plotted
         """
         # Compute the correlation matrix
-        self.corr = df.corr(numeric_only=True)
+        corr = df.corr(numeric_only=True)
 
         # Generate a mask for the upper triangle
-        self.mask = np.triu(np.ones_like(self.corr, dtype=bool))
-
-        # Set up the matplotlib figure
-        self.f, self.ax = plt.subplots(figsize=(18, 14))
+        mask = np.triu(np.ones_like(corr, dtype=bool))
 
         # Generate a custom diverging colormap
-        self.cmap = sns.diverging_palette(1, 10, as_cmap=True)
+        cmap = sns.diverging_palette(1, 10, as_cmap=True)
 
         #Draw the heatmap with the mask and correct aspect ratio
-        sns.heatmap(self.corr, mask=self.mask, cmap=self.cmap, vmax=.3, center=0,
+        sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
                     square=True, linewidths=.5, cbar_kws={"shrink": .5})
         mplt.title(f"Correlation Plot of {data_name}")
 
-class PortfolioConstruction(DataVisualization):
-    def __init__(self):
-        DataVisualization.__init__(self)
+class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
+    def __init__(self, portfolio_size: int=50, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
+                volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.2, investment_strategy: str="Growth"):
+        EquityData.__init__(self)
+        QuantitativeAnalysis.__init__(self)
+        
+        """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied
+        :portfolio_size: the number of assets included in the final portfolio
+        :initial_capital: the initial amount of cash to be invested by the client, in USD\n
+        :capital_per_period: the amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD\n
+        :period: the frequency (in days) at which additional cash is invested, if desired\n
+        :dividends_importance: specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends\n
+        :preferred_industries: specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio\n
+        :volatility_tolerance: accepts a range of values from 0 to 1, with 1 implying maximum volatility tolerance (i.e. the client is willing to lose 100% of their investment to take on more risk)\n
+        :preferred_companies: specifies a list of companies that the analysis algorithms will accomodate in the final portfolio irrespective of their score\n
+        :diversification: accepts a range of values from 0 to 1, with 1 implying maximum diversification (i.e. funds will be distributed evenly across all industries and equally among all companies)\n
+        :investment_strategy: specifies the investment strategy that will guide the output of the analysis algorithms, in which this analysis notebook strictly focuses on growth investing\n
+        :raises: ValueError if an input parameter does not satisfy its accepted range
+        """
+        
+        self.initial_capital = initial_capital
+        self.portfolio_size = portfolio_size
+        self.capital_per_period = capital_per_period
+        self.period = period
+        self.dividends_importance = dividends_importance
+        self.preferred_industries = preferred_industries
+        self.volatility_tolerance = volatility_tolerance
+        self.preferred_companies = preferred_companies
+        self.diversification = diversification
+        self.preferred_companies = preferred_industries
+        self.investment_strategy = investment_strategy
     
-    def asset_allocation(self):
-        pass
+    def compute_diversification(self):
+        if 0.9 <= self.diversification <= 1: # highest degree of diversification (evenly split funds)
+            return 0.3, 0.7
+        elif 0.75 <= self.diversification < 0.9:
+            return 0.2, 0.8
+        elif 0.5 <= self.diversification < 0.75:
+            return 0.1, 0.9
+        elif 0.25 <= self.diversification < 0.5:
+            return 0.01, 0.99
+        else:
+            return 0.011, 0.999 # lowest degree of diversification (do not split evenly split funds for many companies)
+    
+    def asset_allocation(self) -> pd.DataFrame:
+        equities = EquityData("processed_us_equities_tradingview_data_")
+        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/") # update this to inverse normalization for ratios where lower is better
+        complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
+
+        score_count_df = self.extract_corr_plot_counts(complete_df).T
+        
+        def extract_top_predictors(threshold: int=6, exclude_columns: list=['Gross Profit (FY)', 'Enterprise Value (MRQ)']) -> pd.DataFrame:
+            score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
+            
+            top_predictors_narrowest = score_count_df[score_count_df['Count'] >= threshold].index
+            top_predictors_narrowest = top_predictors_narrowest.drop(exclude_columns)
+            
+            return top_predictors_narrowest
+        
+        score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
+        before_weighting = scored_equities
+        scored_equities = scored_equities.select_dtypes(exclude='object')
+
+        #for col in scored_equities.columns:
+        #    standard_col = col[:-6]
+        #    scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
+
+        scored_equities['Aggregated'] = scored_equities[scored_equities.columns].sum(axis=1, numeric_only=True)
+        
+        degree_of_diversification = self.compute_diversification()
+        lower_quantile = degree_of_diversification[0]
+        upper_quantile = degree_of_diversification[1]
+
+        self.rank(scored_equities, 'Aggregated', lower_quantile=lower_quantile, upper_quantile=upper_quantile) # NOTE: we control the degree of portfolio diversification via the number of outliers
+        scored_equities = scored_equities.drop(columns=['Aggregated'])
+
+        scored_equities['Ticker'] = before_weighting['Ticker']
+        scored_equities['Sector'] = before_weighting['Sector']
+        scored_equities['Description'] = before_weighting['Description']
+        
+        scored_equities = scored_equities.sort_values(by='Aggregated Score', ascending=False)
+        top_predictors_narrowest_adjusted = extract_top_predictors()
+
+        vars = [predictor + ' Score' for predictor in top_predictors_narrowest_adjusted]
+        vars.append('Aggregated Score')
+        vars.append('Ticker')
+        vars.append('Sector')
+        vars.append('Description')
+        scored_equities = scored_equities[vars]
+        for col in scored_equities.columns:
+            if col != 'Aggregated Score' and col != 'Sector':
+                scored_equities[col] = before_weighting[col] # restoring the non-weighted normalized values for clarity
+
+        scored_equities = scored_equities[:self.portfolio_size]
+        scored_equities['Funds Allocated'] = round((scored_equities['Aggregated Score'] / sum(scored_equities['Aggregated Score'])) * self.initial_capital, 2)
+        scored_equities['Percentage Allocated'] = (scored_equities['Funds Allocated'] / self.initial_capital) * 100
+        
+        scored_equities = scored_equities.rename(columns={"Description": "Name"})
+        
+        keep_columns = [
+            'Ticker',
+            'Name',
+            'Sector',
+            'Funds Allocated',
+            'Percentage Allocated',
+            'Aggregated Score',
+            'Market Capitalization Score',
+            'Gross Profit (MRQ) Score',
+            'Total Current Assets (MRQ) Score',
+            'EBITDA (TTM) Score']
+    
+        scored_equities = scored_equities.loc[:, keep_columns]
+        scored_equities = scored_equities.rename_axis('S&P500 Position')
+        
+        display(Markdown("# My Portfolio"))
+        return scored_equities
     
     def construct_portfolio(self):
         pass

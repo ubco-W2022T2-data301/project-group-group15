@@ -615,9 +615,9 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         before_weighting = scored_equities
         scored_equities = scored_equities.select_dtypes(exclude='object')
 
-        #for col in scored_equities.columns:
-        #    standard_col = col[:-6]
-        #    scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
+        for col in scored_equities.columns:
+            standard_col = col[:-6]
+            scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
 
         scored_equities['Aggregated'] = scored_equities[scored_equities.columns].sum(axis=1, numeric_only=True)
         
@@ -668,6 +668,69 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         
         display(Markdown("# My Portfolio"))
         return scored_equities
-    
-    def construct_portfolio(self):
+
+    def get_user_input(self):
         pass
+
+class DataUploadFunctions(EquityData, QuantitativeAnalysis):
+    def __init__(self):
+        EquityData.__init__(self)
+        QuantitativeAnalysis.__init__(self)
+        
+        self.processed_data = EquityData("processed_us_equities_tradingview_data_")
+        self.complete_df = self.processed_data.load_and_process('complete_data', directory_path="../data/processed/")
+    
+    def save_normalized_data(self) -> None:
+        str_cols_only = self.complete_df.select_dtypes(include='object')
+        complete_df = self.complete_df.select_dtypes(exclude='object')
+
+        previous_cols_no_str = complete_df.columns
+
+        for col in complete_df.columns:
+            self.rank(complete_df, col)
+
+        complete_df = complete_df[[col + ' Score' for col in previous_cols_no_str]]
+        for col in str_cols_only:
+            complete_df[col] = complete_df[col]
+
+        self.save_processed_data([complete_df], ['normalized_data'])
+    
+    def save_top_predictors(self, return_top_predictors: bool=False):
+        score_count_df = self.extract_corr_plot_counts(self.complete_df).T
+
+        score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
+
+        top_predictors_wide = score_count_df[score_count_df['Count'] >= 4].index # 4 x 4 grid
+        top_predictors_narrowest = score_count_df[score_count_df['Count'] >= 6].index
+        top_predictors_narrowest_adjusted = top_predictors_narrowest.drop(['Gross Profit (FY)', 'Enterprise Value (MRQ)'])
+        # Gross Profit (FY) and MRQ are the same, so FY is removed.
+        # Enterprise Value (MRQ) subtracts total debt from market capitalization, so it tracks the score of Market Capitalization nearly identically, so it is removed.
+        score_count_df = score_count_df.sort_values(by='Assigned Weight', ascending=False)
+        self.rank(score_count_df, 'Assigned Weight', filter_outliers=False)
+        self.save_processed_data([score_count_df], ['top_predictors'])
+
+        if return_top_predictors:
+            return top_predictors_wide, top_predictors_narrowest_adjusted
+    
+    def save_demo_portfolio(self) -> None:
+        portfolio = self.PortfolioRecommendation(500, initial_capital=500000)
+        demo_portfolio = portfolio.asset_allocation()
+        demo_portfolio = demo_portfolio[['Ticker', 'Aggregated Score']]
+        self.save_processed_data([demo_portfolio], ['complete_aggregated_scores'])
+    
+    def save_complete_data(self, dfs: list(), dfs_names: list()) -> None:
+        """the function used to save the "complete_data.csv" file
+        :dfs: a list of all the data sets used in the project, in this exact order:
+        overview_df, income_statement_df, balance_sheet_df, dividends_df, margins_df, performance_df, valuation_df
+        :dfs_names: a list of all the names of the data sets used in the project, in this exact order:
+        "Overview Data", "Balance Sheet Data", "Dividends Data", "Income Statement Data", "Margins Data", "Performance Data", "Valuation Data"
+        """
+        index = dfs_names.index("Performance Data")
+        performance_df = dfs[index]
+        
+        complete_df = self.combined_data_frame(dfs)
+        complete_df['6-Month Performance'] = performance_df['6-Month Performance']
+        complete_df['YTD Performance'] = performance_df['YTD Performance']
+        complete_df['Yearly Performance'] = performance_df['Yearly Performance']
+        
+        self.save_processed_data([complete_df], ['complete_data'])

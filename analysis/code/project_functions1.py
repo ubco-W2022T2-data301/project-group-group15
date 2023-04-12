@@ -171,8 +171,12 @@ class QuantitativeAnalysis:
         meanAbErr = metrics.mean_absolute_error(y_test, y_pred_mlr)
         meanSqErr = metrics.mean_squared_error(y_test, y_pred_mlr)
         rootMeanSqErr = np.sqrt(metrics.mean_squared_error(y_test, y_pred_mlr))
-        
-        results = {'R squared': mlr.score(X,y), 'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
+        R2 = mlr.score(X,y)
+        n = len(df) # sample size
+        p = len(predictors) # number of independent variables
+        adjusted_R2 = 1 - (1-R2)*(len(y)-1)/(len(y)-X.shape[1]-1)
+                
+        results = {'R Squared': R2, 'Adj. R Squared': adjusted_R2,'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
         results_df = pd.DataFrame(results, index=['Model Results'])
         return results_df
     
@@ -596,9 +600,9 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         else:
             return 0.011, 0.999 # lowest degree of diversification (do not split evenly split funds for many companies)
     
-    def asset_allocation(self) -> pd.DataFrame:
+    def asset_allocation(self, save_aggregated_scores: bool=False) -> pd.DataFrame:
         equities = EquityData("processed_us_equities_tradingview_data_")
-        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/") # update this to inverse normalization for ratios where lower is better
+        scored_equities = equities.load_and_process("normalized_data", directory_path="../data/processed/")
         complete_df = equities.load_and_process("complete_data", directory_path="../data/processed/")
 
         score_count_df = self.extract_corr_plot_counts(complete_df).T
@@ -615,9 +619,9 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         before_weighting = scored_equities
         scored_equities = scored_equities.select_dtypes(exclude='object')
 
-        for col in scored_equities.columns:
-            standard_col = col[:-6]
-            scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
+        # for col in scored_equities.columns:
+        #     standard_col = col[:-6]
+        #     scored_equities[col] = scored_equities[col] * score_count_df.T[standard_col]['Assigned Weight']
 
         scored_equities['Aggregated'] = scored_equities[scored_equities.columns].sum(axis=1, numeric_only=True)
         
@@ -640,6 +644,10 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         vars.append('Ticker')
         vars.append('Sector')
         vars.append('Description')
+        
+        if save_aggregated_scores:
+            self.save_processed_data([scored_equities], ['normalized_data_unweighted_aggregated_score'])
+        
         scored_equities = scored_equities[vars]
         for col in scored_equities.columns:
             if col != 'Aggregated Score' and col != 'Sector':

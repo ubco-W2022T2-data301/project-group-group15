@@ -180,7 +180,7 @@ class QuantitativeAnalysis:
         
         return processed_df
         
-    def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization') -> pd.DataFrame:
+    def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization', model_name: str='Model Results') -> pd.DataFrame:
         """Consturcts a multiple linear regression model.
         
         Args:
@@ -217,7 +217,8 @@ class QuantitativeAnalysis:
         adjusted_R2 = 1 - (1-R2)*(len(y)-1)/(len(y)-X.shape[1]-1)
                 
         results = {'R Squared': R2, 'Adj. R Squared': adjusted_R2,'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
-        results_df = pd.DataFrame(results, index=['Model Results'])
+        results_df = pd.DataFrame(results, index=[model_name])
+    
         return results_df
     
     def rank(self, df: pd.DataFrame, col: str, normalize_only: bool=True, threshold: float=1.5,
@@ -855,9 +856,9 @@ class DataUploadFunctions(EquityData, QuantitativeAnalysis):
             A tuple of Pandas DataFrames (if return_top_predictors is True)
         """
         score_count_df = self.extract_corr_plot_counts(self.complete_df).T
-
         score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
 
+        worst_predictors = score_count_df[score_count_df['Count'] == 0].index
         top_predictors_wide = score_count_df[score_count_df['Count'] >= 4].index # 4 x 4 grid
         top_predictors_narrowest = score_count_df[score_count_df['Count'] >= 6].index
         top_predictors_narrowest_adjusted = top_predictors_narrowest.drop(['Gross Profit (FY)', 'Enterprise Value (MRQ)'])
@@ -868,7 +869,7 @@ class DataUploadFunctions(EquityData, QuantitativeAnalysis):
         self.save_processed_data([score_count_df], ['top_predictors'])
 
         if return_top_predictors:
-            return top_predictors_wide, top_predictors_narrowest_adjusted
+            return top_predictors_wide, top_predictors_narrowest_adjusted, worst_predictors # worst_predictors included for control tests
     
     def save_demo_portfolio(self) -> None:
         """Saves the demo portfolio constructed to the processed data folder.

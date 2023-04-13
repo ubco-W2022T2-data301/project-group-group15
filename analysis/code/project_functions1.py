@@ -17,8 +17,9 @@ from plotly.subplots import make_subplots
 
 @dataclass
 class ValueRange:
-    min: float
-    max: float
+    def __init__(self, min: float=0, max: float=1):
+        self.min = min
+        self.max = max
     
     def validate(self, x) -> None:
         """Checks if inputs to variables that must lie within a specific range are valid.
@@ -44,6 +45,9 @@ class EquityData:
         """
         self.common_data_path = common_data_path
         self.extension = extension
+    
+    def load_and_process():
+        pass
 
     def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[],
                          additional_data: pd.DataFrame=None, additional_column: str=None, dropna: bool=False) -> pd.DataFrame:
@@ -60,28 +64,19 @@ class EquityData:
         assert type(number_of_rows) == int, "Number of rows must be an integer"
         df = pd.DataFrame()
         
-        def method_chain() -> pd.DataFrame:
-            """A helper function to create a central method chain.
-            
-            Returns:
-                A new Pandas DataFrame.
-            """
-            df = (
-                pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
-                .iloc[:number_of_rows]
-                .drop(columns=exclude_columns)
-                )
-            return df
+        df = (
+            pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
+            .iloc[:number_of_rows]
+            .drop(columns=exclude_columns)
+            )
         
         if additional_data is not None and additional_column is not None:
             df = (
-                method_chain()
+                df
                 .assign(new_col=additional_data[additional_column])
                 .rename(columns={"new_col": additional_column})
                 )
-        else:
-            df = method_chain()
-        
+            
         if dropna:
             df = df.dropna() 
         
@@ -216,7 +211,7 @@ class QuantitativeAnalysis:
         p = len(predictors) # number of independent variables
         adjusted_R2 = 1 - (1-R2)*(len(y)-1)/(len(y)-X.shape[1]-1)
                 
-        results = {'R Squared': R2, 'Adj. R Squared': adjusted_R2,'Mean Absolute Error': meanAbErr, 'Mean Square Error': meanSqErr, 'Root Mean Square Error': rootMeanSqErr}
+        results = {'R Squared': R2, 'Adj. R Squared': adjusted_R2,'Mean Absolute Error (MAE)': meanAbErr, 'Mean Square Error (MSE)': meanSqErr, 'Root Mean Square Error (RMSE)': rootMeanSqErr}
         results_df = pd.DataFrame(results, index=[model_name])
     
         return results_df
@@ -359,6 +354,37 @@ class QuantitativeAnalysis:
 class DataVisualization(QuantitativeAnalysis):
     def __init__(self):
         QuantitativeAnalysis.__init__(self)
+        EquityData.__init__(self)
+        
+        self.processed_equities = EquityData("processed_us_equities_tradingview_data_")
+    
+    def cross_regression_model_comparison(self, target_y: str, known_predictors: list(), computed_predictors: list(), control_test_predictors: list(), title: str) -> plt.graph_objs._figure.Figure:
+        mlr_data = (
+                    self.processed_equities.load_and_process('normalized_data_unweighted_aggregated_score', '../data/processed/')
+                    .select_dtypes(exclude='object')
+                    .dropna()
+                    )
+
+        combined_predictors = computed_predictors + known_predictors
+
+        mlr_known_predictors = self.multiple_linear_regression(mlr_data, known_predictors, target_y, 'Known Predictors')
+        mlr_computed_predictors = self.multiple_linear_regression(mlr_data, computed_predictors, target_y, 'Computed Predictors')
+        mlr_combined_predictors = self.multiple_linear_regression(mlr_data, combined_predictors, target_y, 'Combined Predictors')
+        mlr_control_test = self.multiple_linear_regression(mlr_data, control_test_predictors, target_y, 'Low Correlation Columns (Control Test)')
+
+        models = [mlr_known_predictors, mlr_computed_predictors, mlr_combined_predictors, mlr_control_test]
+        mlr_complete = pd.concat(models)
+        mlr_complete
+
+        barplot = px.bar(
+            mlr_complete,
+            x=mlr_complete.index,
+            y=mlr_complete.columns,
+            template='plotly_dark',
+            title=title,
+            labels={'value':'Statistical Value', 'index':'Regression Model', 'variable':'Metric'})
+        
+        return barplot
 
     def score_density_plot(self, df: pd.DataFrame, cols: list(), title: str="Density Plot", normalization: bool=True, search_for_score: bool=True) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below.
@@ -398,6 +424,7 @@ class DataVisualization(QuantitativeAnalysis):
 
     def legacy_score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below.
+        Is included as an older version of the newer score_density_plot function for backwards compatability with the exploratory data analysis (EDA) files in the ungraded section of the project.
         
         Args:
             :df: A Pandas DataFrame of equity data.
@@ -684,8 +711,8 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         
         Args:
             portfolio_size: The number of assets included in the final portfolio.
-            initial_capital: The initial amount of cash to be invested by the client, in USD.
-            capital_per_period: The amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in USD.
+            initial_capital: The initial amount of cash to be invested by the client, in CAD.
+            capital_per_period: The amount of cash to be invested by the client at a fixed rate in addition to the initial capital invested, in CAD.
             period: The frequency (in days) at which additional cash is invested, if desired.
             dividends_importance: Specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends.
             preferred_industries: Specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio.
@@ -710,8 +737,8 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         self.preferred_companies = preferred_industries
         self.investment_strategy = investment_strategy
         
-        self.validate(volatility_tolerance) # ensures that the value is within the allowed range
-        self.validate(diversification) # ensures that the value is within the allowed range
+        ValueRange().validate(volatility_tolerance) # ensures that the value is within the allowed range
+        ValueRange().validate(diversification) # ensures that the value is within the allowed range
     
     def compute_diversification(self) -> tuple:
         """Determines the degree of diversification for the sample portfolio.
@@ -813,7 +840,7 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         scored_equities = scored_equities.loc[:, keep_columns]
         scored_equities = scored_equities.rename_axis('S&P500 Position')
         
-        display(Markdown("# My Portfolio"))
+        display(Markdown("# Sample Portfolio: Algorithmic Asset Allocation"))
         return scored_equities
 
 class DataUploadFunctions(EquityData, QuantitativeAnalysis):
@@ -822,8 +849,8 @@ class DataUploadFunctions(EquityData, QuantitativeAnalysis):
         QuantitativeAnalysis.__init__(self)
         """A series of custom processed data upload functions according to the analysis conducted throughout the analysis1.ipynb notebook."""
         
-        self.processed_data = EquityData("processed_us_equities_tradingview_data_")
-        self.complete_df = self.processed_data.load_and_process('complete_data', directory_path="../data/processed/")
+        self.processed_data = EquityData('processed_us_equities_tradingview_data_')
+        self.complete_df = self.processed_data.load_and_process('complete_data', directory_path='../data/processed/')
     
     def save_normalized_data(self) -> None:
         """Saves the normalized data to the processed data folder.
@@ -861,15 +888,13 @@ class DataUploadFunctions(EquityData, QuantitativeAnalysis):
         worst_predictors = score_count_df[score_count_df['Count'] == 0].index
         top_predictors_wide = score_count_df[score_count_df['Count'] >= 4].index # 4 x 4 grid
         top_predictors_narrowest = score_count_df[score_count_df['Count'] >= 6].index
-        top_predictors_narrowest_adjusted = top_predictors_narrowest.drop(['Gross Profit (FY)', 'Enterprise Value (MRQ)'])
-        # Gross Profit (FY) and MRQ are the same, so FY is removed.
-        # Enterprise Value (MRQ) subtracts total debt from market capitalization, so it tracks the score of Market Capitalization nearly identically, so it is removed.
+                
         score_count_df = score_count_df.sort_values(by='Assigned Weight', ascending=False)
         self.rank(score_count_df, 'Assigned Weight', filter_outliers=False)
         self.save_processed_data([score_count_df], ['top_predictors'])
 
         if return_top_predictors:
-            return top_predictors_wide, top_predictors_narrowest_adjusted, worst_predictors # worst_predictors included for control tests
+            return top_predictors_wide, top_predictors_narrowest, worst_predictors # worst_predictors included for control tests
     
     def save_demo_portfolio(self) -> None:
         """Saves the demo portfolio constructed to the processed data folder.

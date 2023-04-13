@@ -68,6 +68,7 @@ class EquityData:
             pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
             .iloc[:number_of_rows]
             .drop(columns=exclude_columns)
+            .rename_axis('S&P500 Position')
             )
         
         if additional_data is not None and additional_column is not None:
@@ -77,7 +78,7 @@ class EquityData:
                 .rename(columns={"new_col": additional_column})
                 )
             
-        if dropna:
+        if dropna: # an important conditional since there are some cases where NaN values should be kept
             df = df.dropna() 
         
         if 'Unnamed: 0' in df.columns:

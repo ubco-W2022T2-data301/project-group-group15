@@ -45,6 +45,10 @@ As we recall the initial hypothesis that the top performing equities may be thos
 
 Nevertheless, a cross-comparison of 4 multiple linear regression models reveals that **combining the top computed predictors with the top known predictors yields the most accurate prediction of overall equity performance[^2].** This model suggests that the top computed predictors are highly effective in filtering through the noise in the data set, and when paired together with the top known predictors, the return on investment for a portfolio of equities is optimized. 
 
+---
+
+## Conclusion
+
 ![tableau dashboard](../images/FinalDashboard1.png)
 **Figure 4:** Tableau Dashboard: What Equity Data is the Most Indicative of the Performance of an Equity?
 
@@ -58,17 +62,10 @@ As an extension to the analysis conducted, utilising the same analysis algorithm
 
 [^7]: Elmerraji, Jonas. “5 Must-Have Metrics for Value Investors.” Investopedia, Dotdash Meredith, 5 Apr. 2023, https://www.investopedia.com/articles/fundamental-analysis/09/five-must-have-metrics-value-investors.asp.
 
-
----
-Content.
-
----
-
 ## Part 2: Title
 
 #### Keisha Kwek
 
----
 Content.
 
 ## Conclusion

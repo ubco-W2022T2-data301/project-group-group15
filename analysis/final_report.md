@@ -45,6 +45,20 @@ As we recall the initial hypothesis that the top performing equities may be thos
 
 Nevertheless, a cross-comparison of 4 multiple linear regression models reveals that **combining the top computed predictors with the top known predictors yields the most accurate prediction of overall equity performance[^2].** This model suggests that the top computed predictors are highly effective in filtering through the noise in the data set, and when paired together with the top known predictors, the return on investment for a portfolio of equities is optimized. 
 
+![tableau dashboard](../images/FinalDashboard1.png)
+**Figure 4:** Tableau Dashboard: What Equity Data is the Most Indicative of the Performance of an Equity?
+
+To address the final component of the research question, the optimized portfolio of equities can be seen in the Tableau dashboard created for the research question. The sample portfolio of equities has been created by accounting for the top computed predictors, in which it is evident that **EBITDA (TTM), Gross Profit (MRQ), Enterprise Value (MRQ) and Total Current Assets (MRQ)** are the four most important metrics for a growth portfolio investment strategy. These predictors are consistent with those generally recommended for growth stocks[^5]. Such a strategy results in the selection of many companies in the technology industry, such as Apple and Microsoft, which is consistent with the notion that growth stocks are those that generally outperform the S&P500 benchmark by yielding stronger returns[^6]. The combination of the top computed predictors with the top known predictors is likey best for a GARP investment strategy as many of the known predictors constitute those that are recommended for value investing[^7].
+
+As an extension to the analysis conducted, utilising the same analysis algorithms on a time series data set for equity data will further validate these findings on a longer time scale. It is important to note that the data set used for this analysis is one that comprises equity data from a declining market, namely, a global recession. As a result, utilising time series data would validate these findings across multiple markets.
+
+[^5]: Segal, Troy. “Growth Investing: Overview of the Investing Strategy.” Investopedia, Dotdash Meredith, 5 Jan. 2023, https://www.investopedia.com/terms/g/growthinvesting.asp. 
+
+[^6]: Hayes, Adam. “Growth Stock: What It Is, Examples, Growth Stock vs. Value Stock.” Investopedia, Dotdash Meredith, 3 Oct. 2022, https://www.investopedia.com/terms/g/growthstock.asp. 
+
+[^7]: Elmerraji, Jonas. “5 Must-Have Metrics for Value Investors.” Investopedia, Dotdash Meredith, 5 Apr. 2023, https://www.investopedia.com/articles/fundamental-analysis/09/five-must-have-metrics-value-investors.asp.
+
+
 ---
 Content.
 

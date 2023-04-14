@@ -54,6 +54,8 @@ Here, the left heatmap is the plotting between the top 17 companies and the righ
 
 Another version of this heatmap was also made in Microsoft Excel to specifically highlight the top recommended companies. 
 
+<br />
+
 ![Second HeatMap](../images/ExcelHeatmap.png)
 
 <div align="right"> Picture 1.2: Heatmap of all stocks and its stock attributes in Microsoft Excel
@@ -74,6 +76,8 @@ However, it is not enough to only take these three variables and use them as met
 
 These variables show that these variables are highly correlated with a company's debts, assets, cash flow, liquidity, and dividend payments. Through these, we can move forward in selecting the essential the  variables from the equities trading data in the following stages: 
 
+<br />
+
 ### Stage 1.1: Defining a good dividend stock
 
 After research of reliable trading websites such as U.S. News & World Report, Investopedia, and the Motley Fool, around 10-15 dividend stocks were selected as "the top dividend stocks to consider buying". By laying the basics of what best describes a good dividend stock presented by their variables in the trading data, the analysis and aggregation will be usable to different and updated stock lists. Upon further research and analysis, the following variables present to be the variables commonly seen in these strongly endorsed dividend stocks, as correlated with the three variables previously mentioned:
@@ -82,6 +86,8 @@ After research of reliable trading websites such as U.S. News & World Report, In
 2. Strong Financials: A strong balance sheet, healthy cash flow, and sustainable earnings growth ensures that the company can continue to pay dividends through tough economic times.
 3. Low payout Ratio (percentage of earnings paid out as dividends): a high payout ratio means the company is not reinvesting enough capital to support future growth, which may be a red flag for long-term investment.
 4. Competitive Dividend Yield: This is compared to other companies in the same industry of the broader market. It is important to note that although a high yield is attractive, it may not be sustainable for the company itself.
+
+<br />
 
 ### Stage 1.2: Calculating the risk score (based on the company’s industry position) 
 
@@ -92,8 +98,9 @@ As dividend stocks are typically run long-term, the risk factors would involve t
 
 1. **Payout Ratio (25%)**: when a company has a higher percentage of its earnings as dividends this may present as a higher risk as it means they are not investing enough in the company. This variable takes into account the dividend consistency of a company in its calculation, as it is *dividends per share divided by basic EPS*. As this is risky for the long-term and critical for dividend sustainability, it receives a score of 10%.
 1. **Debt levels (25%)**: companies with higher debt may struggle to continue paying dividends and are in more of a risk to declare bankruptcy. As this is an element that significantly impacts a company's health and company health is a major aspect seen from the derivations above, it will receive a score of 25%.
-1. **Value stock volatility (50%)**: This is the number . 
+1. **Value stock volatility (50%)**: This is the number which shows the fluctuations of each value stock in the stock market.
 
+<br />
 
 ### Stage 2.2: Calculating the Industry Safety Score
 
@@ -102,6 +109,8 @@ The Industry Safety Score is a metric made to account for the safety of an indus
 1. **Industry stability (50%)**: Calculated using the reciprocal of the volatile variable in the balance sheet, stable industries have steady demand for their products or services, hence they are less susceptible to economic downturns or competition from new entrants. Long history of stable growth and profitability shows a stable industry, shows better likelihood that the company will not fall behind in dividend payments.
 1. **Financial health of companies within an industry (50%)**: As mentioned above, the financial health of a company is a large variable to account in a company's ability to fulfil their dividend payments in full. These financial health variables rely on cash flows, debt-to-equity ratio, earnings growth, and history of dividend payments. It also accounts for the possibility of the company having the foundation for future dividend increases.
 
+<br />
+
 ### Stage 3: Calculating the Worthiness of a Value Stock
 
 The worthiness of investing in a value stock will take account the previously calculated variables alongside other variables which effect a company's current ratio, quick ratio, and dividends paid - variables which were found to be most commonly different of endorsed value stocks from the rest of the value stocks.
@@ -109,21 +118,17 @@ The worthiness of investing in a value stock will take account the previously ca
 ### Fixed Variables (60%)
 
 1. **Financial Health (20%)**: As financial health impacts a company's sustainability to maintain and grow its dividend payments over time, it is a crucial aspect to include when calculating a value stock's worthiness in investing. 
-2. **Price to Earnings Ratio (20%)**: 
+2. **Price to Earnings Ratio (20%)**: A higher P/E ratio is a good metric for value stock success as it shows that investors are willing to pay a higher share price today because of growth expectations in the future. As investor demand influences the value stock prices, this is a crucial variable to be included. 
 3. **Industry Safety Score (20%)**: Cyclical industries are at risk of volatile earnings and cash flows, hence not generating enough funds to paying dividends. Especially in times of economic uncertainty, some companies will perserve cash over paying dividends - resulting in a cut of dividends. This is why this variable is 30% as it is a variable strongly related to dividend payments.
 
 ### Client-driven Variables (40%)
 
-These are the variables which will vary depending on the client input. In this research, it will be represented in only three levels:
-
-1. Moderate risk, moderate yield
-1. High risk, high outcome yield
-1. Low risk, low outcome yield
-
-Where the following variables will vary in client input to effect worthiness of investing in a value stock from 1-20% but both should add up to 40% of the worthiness calculation. 
+These are the variables which will vary depending on the client input. In this research, the following variables will vary in client input to effect worthiness of investing in a value stock from 1-20% but both should add up to 40% of the worthiness calculation.
 
 1. **Dividend yield (20%)**: Dividend yield is the annual dividend payment as a percentage of stock price. A higher dividend yield will provide a higher stream of income for the investor. If the client prefers a higher yield, they will increase the percentage of dividend yield accordingly to calcualte the worthiness of a value stock.
 1. **Risk(20%)**: Risk will account for the client's [bearability] to bear for risks. The higher the risk, the more the worthiness score will account for high-risk value stocks.  
+
+<br />
 
 ## II. Analysis of Variables
 After defining the given variables, data cleaning, and data aggregation, the following final DataFrame is outputted:

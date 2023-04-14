@@ -169,7 +169,7 @@ As dividend stocks are typically run long-term, the risk factors would involve t
 
 1. **Payout Ratio (25%)**: when a company has a higher percentage of its earnings as dividends this may present as a higher risk as it means they are not investing enough in the company. This variable takes into account the dividend consistency of a company in its calculation, as it is *dividends per share divided by basic EPS*. As this is risky for the long-term and critical for dividend sustainability, it receives a score of 10%.
 1. **Debt levels (25%)**: companies with higher debt may struggle to continue paying dividends and are in more of a risk to declare bankruptcy. As this is an element that significantly impacts a company's health and company health is a major aspect seen from the derivations above, it will receive a score of 25%.
-1. **Value stock volatility (50%)**: This is the number . 
+1. **Value stock volatility (50%)**: This is the number which shows the fluctuations of each value stock in the stock market.
 
 <br />
 

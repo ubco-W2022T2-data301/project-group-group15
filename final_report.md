@@ -8,10 +8,10 @@ Our combined goal is to investigate what equity data is the most important to co
 
 Due to the lack of time series data, our initial definition of equity performance related the values of each quarterly (MRQ) metric to the 3-month change in the price of the equity. With the 3-month change metric referring to the change in the price of each equity since the release of quarterly data, it made sense to use only quarterly data for our analysis. However, constructing several linear regression models yielded no correlation for any metric with the 3-month change in price.
 
-![coefficients bar plot](../images/EDA1_plt1.png)
+![coefficients bar plot](images/EDA1_plt1.png)
 This signaled that the definition of equity performance had to be adjusted to accurately account for the static-data limitation of our data set.
 
-![equity data density plot](../images/EDA1_plt2.png)
+![equity data density plot](images/EDA1_plt2.png)
 
 After constructing a density plot for every financial metric across all 7 data sets, we noticed that many distributions were significantly skewed, hinting that the value in our analysis may in fact be by defining equity performance as the degree at which a company scores highly across all financial metrics. This proposition lead to the hypothesis that perhaps the top performing companies are those which exist as outliers in distributions that are skewed towards the low score range[^1]. This same hypothesis lead us to use heat maps in our analysis to map the performance of companies across every metric.
 
@@ -29,18 +29,18 @@ As per the series of analysis algorithms developed[^2], the top predictors for e
 
 [^3]: EBITDA refers to Earnings Before Interest, Tax, Depreciation and Amortization. TTM, MRQ and FY refer to trailing twelve months, most recent quarter and fiscal year.
 
-![top predictors heat map](../images/analysis1_plt1.png)
+![top predictors heat map](images/analysis1_plt1.png)
 **Figure 1**: Faceted Heat Map Grid of Normalized Equity Data from the Top (Left) and Bottom (Right) 20 Companies in the S&P500 Index by Predictor (1 = Best, 0 = Worst).
 
 By comparing the top 20 and bottom 20 companies in the S&P500 Index through a faceted heat map plot, and sorting each heat map subplot by each predictor, there is a clear distinction between the overall equity performance of the top 20 and bottom 20 companies when using the top computed predictors. Each subplot features two heat maps (from the top 20 and bottom 20 companies, respectively) that have been merged together to show this contrast. Evidently, as we approach the 4th row of the faceted heat map plot, the degree of contrast becomes increasingly less apparent. This observation inspired the designation of weights to each computed top predictor to more accurately reflect the statistical significance of each metric when computing the aggregated scores for each equity in the data set[^2].
 
-![highest correlation predictors density plot](../images/analysis1_plt5.png)
-![lowest correlation predictors density plot](../images/analysis1_plt6.png)
+![highest correlation predictors density plot](images/analysis1_plt5.png)
+![lowest correlation predictors density plot](images/analysis1_plt6.png)
 **Figure 2:** Density Plots of the Strongest and Weakest Predictors of Equity Performance for Companies in the S&P500 Index.
 
 As we recall the initial hypothesis that the top performing equities may be those that are outliers in negatively-skewed distributions, isolating the best and worst computed predictors for further analysis does indeed support this hypothesis. The density plot for the top computed predictors shows a profoundly negatively-skewed distribution. As a control test, the density plot of the worst computed predictors does not produce the same results--the distributions are spread out across the normalized score range, suggesting that the worst computed metrics do not reliably filter through the noise in the S&P500 Index.
 
-![multiple linear regression models](../images/analysis1_plt4.png)
+![multiple linear regression models](images/analysis1_plt4.png)
 **Figure 3:** Cross-comparison of 4 Multiple Linear Regression Models.
 
 Nevertheless, a cross-comparison of 4 multiple linear regression models reveals that **combining the top computed predictors with the top known predictors yields the most accurate prediction of overall equity performance[^2].** This model suggests that the top computed predictors are highly effective in filtering through the noise in the data set, and when paired together with the top known predictors, the return on investment for a portfolio of equities is optimized. 
@@ -49,7 +49,7 @@ Nevertheless, a cross-comparison of 4 multiple linear regression models reveals 
 
 ## Conclusion
 
-![tableau dashboard](../images/FinalDashboard1.png)
+![tableau dashboard](images/FinalDashboard1.png)
 **Figure 4:** Tableau Dashboard: What Equity Data is the Most Indicative of the Performance of an Equity?
 
 To address the final component of the research question, the optimized portfolio of equities can be seen in the Tableau dashboard created for the research question. The sample portfolio of equities has been created by accounting for the top computed predictors, in which it is evident that **EBITDA (TTM), Gross Profit (MRQ), Enterprise Value (MRQ) and Total Current Assets (MRQ)** are the four most important metrics for a growth portfolio investment strategy. These predictors are consistent with those generally recommended for growth stocks[^5]. Such a strategy results in the selection of many companies in the technology industry, such as Apple and Microsoft, which is consistent with the notion that growth stocks are those that generally outperform the S&P500 benchmark by yielding stronger returns[^6]. The combination of the top computed predictors with the top known predictors is likey best for a GARP investment strategy as many of the known predictors constitute those that are recommended for value investing[^7].
@@ -113,7 +113,7 @@ Amongst these stocks, a heatmap is created to identify the characteristics that 
 
 <br />
 
-![First HeatMap](../images/R2HeatmapPlotly.png)
+![First HeatMap](images/R2HeatmapPlotly.png)
 
 <div align="right"> Picture 1.1: Heatmap of all stocks and its stock attributes in Plotly
 
@@ -127,7 +127,7 @@ Another version of this heatmap was also made in Microsoft Excel to specifically
 
 <br />
 
-![Second HeatMap](../images/ExcelHeatmap.png)
+![Second HeatMap](images/ExcelHeatmap.png)
 
 <div align="right"> Picture 1.2: Heatmap of all stocks and its stock attributes in Microsoft Excel
 
@@ -210,7 +210,7 @@ Where the following variables will vary in client input to effect worthiness of 
 ## II. Analysis of Variables
 After defining the given variables, data cleaning, and data aggregation, the following final DataFrame is outputted:
 
-![Final DataFrame](../images/final_df.png)
+![Final DataFrame](images/final_df.png)
 
 <div align="right">*Picture 2.1: DataFrame of all calculated variables*
 
@@ -220,13 +220,13 @@ After defining the given variables, data cleaning, and data aggregation, the fol
 
 From this DataFrame, we created a RidgeLine plot to visualize the average worthiness of each industry. 
 
-![RidgeLine plot](../images/Ridgeline_Worthiness.png)
+![RidgeLine plot](images/Ridgeline_Worthiness.png)
 
 From this plot, we can see that the industry with the highest value stock worthiness is Health Technology and Technology Services, alongside that, there is a lack of variability and data points in the Finance and Health Services.
 
 To better visualize this distribution, the following plot shows the worthiness of value stocks per industry using a boxplot, showing the individual plots to better understand how each distribution came to be. 
 
-![BoxPlot](../images/BoxPlot_Worthiness.png)
+![BoxPlot](images/BoxPlot_Worthiness.png)
 
 From this distribution, we can see that there are outliers most prominently seen in the following industries:
 
@@ -244,7 +244,7 @@ This may be because the nature of these industries are monopolies of oligopolies
 
 This pattern best seen in the Hexplot, where we are able to compare both the Worthiness of the Stocks in each sector plotted against the companies' Earnings per Share (EPS). As EPS is a common metric investors use to calculate the return of a stock where a higher EPS indicates greater value.
 
-![HexPlot](../images/HexPlot__EPS_Worthiness.png)
+![HexPlot](images/HexPlot__EPS_Worthiness.png)
 
 From this plot, we can see how the variability of stock amount in each industry may impact the average score, and hence the data shown in the previous plots. Nonetheless, it can be seen how some companies have a large variation in the intensity between its Value Stock Worthiness as compared to its companies' EPS value. This may show how some industries' Value Stock Worthiness may be in correspondence with its companies' EPS value, meaning that some industries are influenced by volatility and economic fluctuations more than others.
 
@@ -263,21 +263,21 @@ An evidence to this volatility is the fact that the pandemic is a recent economi
 
 The three initial prominent variables were seen to be Current Ratio, Quick Ratio, and Dividend Yield. In creating the worthiness score, we made sure to break down each of these variables into the components that it was created by so that we can truly analyze and classify the true raw variables that indicate the worthiness of a value stock. The relationship and correlation between the variables can be seen in the following plots.
 
-![Correlation of Div. Yield, Ratios, and Worthiness](../images/Correlation_QuickRatio_Worthiness.png)
+![Correlation of Div. Yield, Ratios, and Worthiness](images/Correlation_QuickRatio_Worthiness.png)
 
 It is seen here that there is a positive correlation, albeit weak, between the worthiness of the value stocks and the companies' quick ratio.
 
-![Correlation of Div. Yield, Ratios, and Worthiness](../images/Correlation_CurrentRatio_Worthiness.png)
+![Correlation of Div. Yield, Ratios, and Worthiness](images/Correlation_CurrentRatio_Worthiness.png)
 
 Here, we can see that there is stronger positive correlation between the worthiness of the value stocks and the companies' quick ratio than the previous plot, however still being a weak correlation.
 
-![Correlation of Div. Yield, Ratios, and Worthiness](../images/Correlation_DividendYield_Worthiness.png)
+![Correlation of Div. Yield, Ratios, and Worthiness](images/Correlation_DividendYield_Worthiness.png)
 
 In this plot, it shows a very small correlation between the two variables, however there are separated patterns of strong correlation. This may be because the data used for these plots are a combination of all value stock worthiness.
 
 Nonetheless, the following plot shows a better presentation of these values can be seen when each plot is labelled by the industries they are in.
 
-![Relationship of Div. Yield, Ratios, and Worthiness](../images/Relationship_CurrentRatio_Worthiness.png)
+![Relationship of Div. Yield, Ratios, and Worthiness](images/Relationship_CurrentRatio_Worthiness.png)
 
 From this plot, we can see how the stocks of each sector are confined in their own specified area. For instance, the Worthiness column shows how the variation is seen between industries. When we take a closer look, we can find that each companies' value stock worthiness in a particular indudstry has a positive correlation with Dividend Yield. This pattern is also seen in the current and quick ratios, meaning that we have compartmentalized and broken down the components which make the three initial variables and applied them to our calculation of value stock worthiness accurately.
 

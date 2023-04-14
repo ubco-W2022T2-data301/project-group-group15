@@ -14,12 +14,6 @@ Hence, this analysis hopes to break down the variables that represents a company
 ## **Research Question**
 What are the best metrics to use to rank the value of a value stock for a dividend stock portfolio calculation and how can it be best enumerated to yield the most accurate results?
 
-## **Our Data**
-Combining 
-
-## **Analysis Plan**
-
-
 ## **Analysis & Discussion**
 
 ## I. Determining a good dividend stock

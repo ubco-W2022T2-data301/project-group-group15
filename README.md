@@ -1,4 +1,4 @@
-# Group 15 - Algorithmic Asset Allocation and Portfolio Construction: Client-Driven Optimization
+# Group 15 - Algorithmic Asset Allocation and Portfolio Construction
 
 ## Milestones
 
@@ -6,11 +6,7 @@ Details for Milestone are available on Canvas (left sidebar, Course Project).
 
 ## Describe your topic/interest in about 150-200 words
 
-Our goal is to develop software for constructing an optimized portfolio of equities according to client requirements by leveraging quantitative analysis, financial modelling and data visualization techniques. The software is adaptable to client preferences by accepting a series of predetermined parameters which the client will input, and the software will use across a chain of analyses to generate a final investment portfolio. A significant component of the final recommendation is the distribution of client capital across the optimal equities selected.
-
-From an industry perspective, we intend to provide a solution to the problem of maximizing client returns by optimizing risk and return in the case of optimal asset allocation. Clients have diverse investment goals, which is why client-driven algorithmic portfolio allocation is the basis of our project. We achieve this by having the client define their preferences according to the risk-management parameters we have defined, and further process this data to select equities from the top 500 publicly-traded companies by market capitalization in the United States. We are passionate about revealing underlying trends across financial markets, being composed of a diverse group of Computer Science, Data Science and Management students.
-
-The final product is delivered through an interactive Tableau Dashboard that displays an intergrated overview of the client's customized portfolio and accompanying analyses.
+Our combined goal is to investigate what equity data is the most important to consider when developing a portfolio of equities that preferences either a growth portfolio or value investment strategy. From an industry perspective, we intend to provide a solution to the problem of maximizing client returns by optimizing risk and return in the case of optimal asset allocation. Clients have diverse investment goals, which is why we have divided our group project into the explortation of both growth and value investment strategies. As a successful analysis requires us to validate our findings with a series of control tests, we are equally passionate about discovering new trends in our data in addition to validating our findings with that is already known. Therefore, our research questions inherently prescribe an implicit comparison with known factors. We are passionate about revealing underlying trends across financial markets, being composed of a group of Computer Science and Data Science students.
 
 ## Describe your dataset in about 150-200 words
 
@@ -25,7 +21,7 @@ There are 76 data columns shared across all 7 data sets, of which 70 of them are
 
 ## Images
 
-![img](images/Dashboard_1.png)
+![img](images/FinalDashboard.png)
 ![img](images/Combined_Heatmap_Panel.png)
 ![img](images/DensityPlotA.png)
 

@@ -21,9 +21,9 @@ There are 76 data columns shared across all 7 data sets, of which 70 of them are
 
 ## Images
 
-![img](images/FinalDashboard.png)
-![img](images/Combined_Heatmap_Panel.png)
-![img](images/DensityPlotA.png)
+![img](images/FinalDashboard1.png)
+![img](images/analysis1_plt1.png)
+![img](images/analysis1_plt5.png)
 
 ## References
 

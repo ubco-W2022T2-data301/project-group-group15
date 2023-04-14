@@ -203,7 +203,7 @@ These are the variables which will vary depending on the client input. In this r
 Where the following variables will vary in client input to effect worthiness of investing in a value stock from 1-20% but both should add up to 40% of the worthiness calculation. 
 
 1. **Dividend yield (20%)**: Dividend yield is the annual dividend payment as a percentage of stock price. A higher dividend yield will provide a higher stream of income for the investor. If the client prefers a higher yield, they will increase the percentage of dividend yield accordingly to calcualte the worthiness of a value stock.
-1. **Risk(20%)**: Risk will account for the client's [bearability] to bear for risks. The higher the risk, the more the worthiness score will account for high-risk value stocks.  
+1. **Risk(20%)**: Risk will account for the client's ability to bear for risks. The higher the risk, the more the worthiness score will account for high-risk value stocks.  
 
 <br />
 

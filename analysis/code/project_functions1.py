@@ -64,15 +64,18 @@ class EquityData:
         assert type(number_of_rows) == int, "Number of rows must be an integer"
         df = pd.DataFrame()
         
-        df = (
+        # NOTE: method chains are also used outside of this function -- see line 366
+        # The nature of our data requires us to do a lot of processing in large functions with specific requirements for different data frames
+        df = ( # method chain 1
             pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
             .iloc[:number_of_rows]
             .drop(columns=exclude_columns)
             .rename_axis('S&P500 Position')
+            .sort_index() # making sure the index is always sorted as there are a few edge cases where the index is not sorted
             )
         
         if additional_data is not None and additional_column is not None:
-            df = (
+            df = ( # method chain 2
                 df
                 .assign(new_col=additional_data[additional_column])
                 .rename(columns={"new_col": additional_column})
@@ -360,7 +363,7 @@ class DataVisualization(QuantitativeAnalysis):
         self.processed_equities = EquityData("processed_us_equities_tradingview_data_")
     
     def cross_regression_model_comparison(self, target_y: str, known_predictors: list(), computed_predictors: list(), control_test_predictors: list(), title: str) -> plt.graph_objs._figure.Figure:
-        mlr_data = (
+        mlr_data = ( # method chain 3
                     self.processed_equities.load_and_process('normalized_data_unweighted_aggregated_score', '../data/processed/')
                     .select_dtypes(exclude='object')
                     .dropna()

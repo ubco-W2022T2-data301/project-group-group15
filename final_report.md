@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Our combined goal is to investigate what equity data is the most important to consider when developing a portfolio of equities that preferences either a growth portfolio or value investment strategy. From an industry perspective, we intend to provide a solution to the problem of maximizing client returns by optimizing risk and return in the case of optimal asset allocation. Clients have diverse investment goals, which is why we have divided our group project into the explortation of both growth and value investment strategies. Our data is composed of 7 data sets of equity data that includes data on the financial accounts, valuation, performance, dividends and margins of companies part of the S&P500 Index. We are passionate about revealing underlying trends across financial markets, being composed of a group of Computer Science and Data Science students.
+Our combined goal is to investigate what equity data is the most important to consider when developing a portfolio of equities that preferences either a growth portfolio or value investment strategy. From an industry perspective, we intend to provide a solution to the problem of maximizing client returns by optimizing risk and return in the case of optimal asset allocation. Clients have diverse investment goals, which is why we have divided our group project into the exploration of both growth and value investment strategies. Our data is composed of 7 data sets of equity data that includes data on the financial accounts, valuation, performance, dividends and margins of companies part of the S&P500 Index. We are passionate about revealing underlying trends across financial markets, being composed of a group of Computer Science and Data Science students.
 
 ## Exploratory Data Analysis
 
@@ -43,7 +43,7 @@ As we recall the initial hypothesis that the top performing equities may be thos
 ![multiple linear regression models](images/analysis1_plt4.png)
 **Figure 3:** Cross-comparison of 4 Multiple Linear Regression Models.
 
-Nevertheless, a cross-comparison of 4 multiple linear regression models reveals that **combining the top computed predictors with the top known predictors yields the most accurate prediction of overall equity performance[^2].** This model suggests that the top computed predictors are highly effective in filtering through the noise in the data set, and when paired together with the top known predictors, the return on investment for a portfolio of equities is optimized. 
+Nevertheless, a cross-comparison of 4 multiple linear regression models reveals that **combining the top computed predictors with the top known predictors yields the most accurate prediction of overall equity performance[^2].** This model suggests that the top computed predictors are highly effective in filtering through the noise in the data set, and when paired together with the top known predictors, the return on investment for a portfolio of equities is optimized.
 
 ---
 
@@ -52,7 +52,7 @@ Nevertheless, a cross-comparison of 4 multiple linear regression models reveals 
 ![tableau dashboard](images/FinalDashboard1.png)
 **Figure 4:** Tableau Dashboard: What Equity Data is the Most Indicative of the Performance of an Equity?
 
-To address the final component of the research question, the optimized portfolio of equities can be seen in the Tableau dashboard created for the research question. The sample portfolio of equities has been created by accounting for the top computed predictors, in which it is evident that **EBITDA (TTM), Gross Profit (MRQ), Enterprise Value (MRQ) and Total Current Assets (MRQ)** are the four most important metrics for a growth portfolio investment strategy. These predictors are consistent with those generally recommended for growth stocks[^5]. Such a strategy results in the selection of many companies in the technology industry, such as Apple and Microsoft, which is consistent with the notion that growth stocks are those that generally outperform the S&P500 benchmark by yielding stronger returns[^6]. The combination of the top computed predictors with the top known predictors is likey best for a GARP investment strategy as many of the known predictors constitute those that are recommended for value investing[^7].
+To address the final component of the research question, the optimized portfolio of equities can be seen in the Tableau dashboard created for the research question. The sample portfolio of equities has been created by accounting for the top computed predictors, in which it is evident that **EBITDA (TTM), Gross Profit (MRQ), Enterprise Value (MRQ) and Total Current Assets (MRQ)** are the four most important metrics for a growth portfolio investment strategy. These predictors are consistent with those generally recommended for growth stocks[^5]. Such a strategy results in the selection of many companies in the technology industry, such as Apple and Microsoft, which is consistent with the notion that growth stocks are those that generally outperform the S&P500 benchmark by yielding stronger returns[^6]. The combination of the top computed predictors with the top known predictors is likely best for a GARP investment strategy as many of the known predictors constitute those that are recommended for value investing[^7].
 
 As an extension to the analysis conducted, utilising the same analysis algorithms on a time series data set for equity data will further validate these findings on a longer time scale. It is important to note that the data set used for this analysis is one that comprises equity data from a declining market, namely, a global recession. As a result, utilising time series data would validate these findings across multiple markets.
 
@@ -109,7 +109,7 @@ Before determining the key variables to quantify dividend stocks, we must first 
 1. Air Products and Chemicals, Inc.
 
 
-Amongst these stocks, a heatmap is created to identify the characteristics that differentiate them from the other stocks. 
+Amongst these stocks, a heatmap is created to identify the characteristics that differentiate them from the other stocks.
 
 <br />
 
@@ -123,7 +123,7 @@ Amongst these stocks, a heatmap is created to identify the characteristics that 
 
 Here, the left heatmap is the plotting between the top 17 companies and the right heatmap is the plotting between the rest of the companies to be in comparison.
 
-Another version of this heatmap was also made in Microsoft Excel to specifically highlight the top recommended companies. 
+Another version of this heatmap was also made in Microsoft Excel to specifically highlight the top recommended companies.
 
 <br />
 
@@ -137,17 +137,17 @@ Another version of this heatmap was also made in Microsoft Excel to specifically
 
 <br />
 
-In this heatmap, the table is sorted based on the recommended dividend stocks, which is highlighted in yellow. It can be seen that while most variables remained "normal" the Current Ratio, Quick Ratio, and Dividends Paid of the recommended stocks is seen to be the most nontypical in comparison to its stock counterparts. 
+In this heatmap, the table is sorted based on the recommended dividend stocks, which is highlighted in yellow. It can be seen that while most variables remained "normal" the Current Ratio, Quick Ratio, and Dividends Paid of the recommended stocks is seen to be the most nontypical in comparison to its stock counterparts.
 
-However, it is not enough to only take these three variables and use them as metrics to calculate the best dividend stocks. This is because there are a large amount of stocks which have similar values as they do, but the difference is the other stocks may have a good current ratio but a bad quick ratio, or a good quick ratio but an insufficient amount of dividends paid. For this reason, the values behind current ratio, quick ratio, and dividends paid will be broken down into separate variables that can be precisely measured and sorted for further compatisons. 
+However, it is not enough to only take these three variables and use them as metrics to calculate the best dividend stocks. This is because there are a large amount of stocks which have similar values as they do, but the difference is the other stocks may have a good current ratio but a bad quick ratio, or a good quick ratio but an insufficient amount of dividends paid. For this reason, the values behind current ratio, quick ratio, and dividends paid will be broken down into separate variables that can be precisely measured and sorted for further comparisons.
 
- **Variables that portrude differing weights in comparison to the other stocks and their meaning:**
+ **Variables that protrude differing weights in comparison to the other stocks and their meaning:**
 
 1. **Current ratio**: a company's ability to pay short-term liabilities (debt and obligations) with its current assets (cash, inventory, and receivables).
 1. **Quick ratio**: often referred to the acid-test ratio, it measures the liquidity of a company by gauging its current assets' abilities to cover its current liabilities.
 1. **Dividends paid**: this is the amount of dividends the company pays out to the shareholders of the dividend stock.
 
-These variables show that these variables are highly correlated with a company's debts, assets, cash flow, liquidity, and dividend payments. Through these, we can move forward in selecting the essential the  variables from the equities trading data in the following stages: 
+These variables show that these variables are highly correlated with a company's debts, assets, cash flow, liquidity, and dividend payments. Through these, we can move forward in selecting the essential the  variables from the equities trading data in the following stages:
 
 <br />
 
@@ -204,7 +204,7 @@ These are the variables which will vary depending on the client input. It can be
 
 Where the following variables will vary in client input to effect worthiness of investing in a value stock from 1-20% but both should add up to 40% of the worthiness calculation.
 
-1. **Dividend yield (20%)**: Dividend yield is the annual dividend payment as a percentage of stock price. A higher dividend yield will provide a higher stream of income for the investor. If the client prefers a higher yield, they will increase the percentage of dividend yield accordingly to calcualte the worthiness of a value stock.
+1. **Dividend yield (20%)**: Dividend yield is the annual dividend payment as a percentage of stock price. A higher dividend yield will provide a higher stream of income for the investor. If the client prefers a higher yield, they will increase the percentage of dividend yield accordingly to calculate the worthiness of a value stock.
 1. **Risk(20%)**: Risk will account for the client's ability to bear for risks. The higher the risk, the more the worthiness score will account for high-risk value stocks.  
 
 <br />
@@ -231,7 +231,7 @@ From this DataFrame, we created a RidgeLine plot to visualize the average worthi
 
 From this plot, we can see that the industry with the highest value stock worthiness is Health Technology and Technology Services, alongside that, there is a lack of variability and data points in the Finance and Health Services.
 
-To better visualize this distribution, the following plot shows the worthiness of value stocks per industry using a boxplot, showing the individual plots to better understand how each distribution came to be. 
+To better visualize this distribution, the following plot shows the worthiness of value stocks per industry using a boxplot, showing the individual plots to better understand how each distribution came to be.
 
 ![BoxPlot](images/BoxPlot_Worthiness.png)
 <div align="right">Picture 2.3: BoxPlot of Value Stock Worthiness
@@ -316,22 +316,22 @@ Nonetheless, the following plot shows a better presentation of these values can 
 
 <br />
 
-From this plot, we can see how the stocks of each sector are confined in their own specified area. For instance, the Worthiness column shows how the variation is seen between industries. When we take a closer look, we can find that each companies' value stock worthiness in a particular indudstry has a positive correlation with Dividend Yield. This pattern is also seen in the current and quick ratios, meaning that we have compartmentalized and broken down the components which make the three initial variables and applied them to our calculation of value stock worthiness accurately.
+From this plot, we can see how the stocks of each sector are confined in their own specified area. For instance, the Worthiness column shows how the variation is seen between industries. When we take a closer look, we can find that each companies' value stock worthiness in a particular industry has a positive correlation with Dividend Yield. This pattern is also seen in the current and quick ratios, meaning that we have compartmentalized and broken down the components which make the three initial variables and applied them to our calculation of value stock worthiness accurately.
 
 ## **Conclusion & Remarks**
 
-In conclusion, we were able to create a quite precise model in which accomodates the variables that create a worthy value stock to invest in. This process was authenticated by plotting the initial variables that started our variable aggregation analysis, alongside seeing its relationship in each industry. Even so, there are a few variables that we were not able to quantify and include in our analysis. For example, the regulatory risks of an industry (e.g. tax laws, tariffs, or environmental regulations) which can influence the value of stocks to a large extent was not calculated as there were no values that we could enumerate to represent them. That, on top of the fact that the nature of stocks are in general very unpredictable shows that there is also inaccuracy to this analysis to some extent. 
+In conclusion, we were able to create a quite precise model in which accommodates the variables that create a worthy value stock to invest in. This process was authenticated by plotting the initial variables that started our variable aggregation analysis, alongside seeing its relationship in each industry. Even so, there are a few variables that we were not able to quantify and include in our analysis. For example, the regulatory risks of an industry (e.g. tax laws, tariffs, or environmental regulations) which can influence the value of stocks to a large extent was not calculated as there were no values that we could enumerate to represent them. That, on top of the fact that the nature of stocks are in general very unpredictable shows that there is also inaccuracy to this analysis to some extent.
 
-Overall, this analysis has shown that even the most unpredictable datasets that show large deviations can be analyzed when categorized and distinguished appropriately. 
+Overall, this analysis has shown that even the most unpredictable datasets that show large deviations can be analyzed when categorized and distinguished appropriately.
 
-[^8]: 15 Best Dividend Stocks to Buy Now | Investing | U.S. News. https://money.usnews.com/investing/dividends/slideshows/best-dividend-stocks-to-buy-this-year. 
+[^8]: 15 Best Dividend Stocks to Buy Now | Investing | U.S. News. https://money.usnews.com/investing/dividends/slideshows/best-dividend-stocks-to-buy-this-year.
 
-[^9]: Reiff, Nathan. “Top Dividend Stocks for April 2023.” Investopedia, Investopedia, 29 Mar. 2023, https://www.investopedia.com/top-dividend-stocks-april-2023-7372726. 
+[^9]: Reiff, Nathan. “Top Dividend Stocks for April 2023.” Investopedia, Investopedia, 29 Mar. 2023, https://www.investopedia.com/top-dividend-stocks-april-2023-7372726.
 
-[^10]: Hall, Jason. “Best Dividend Stocks to Buy and Hold in 2023.” The Motley Fool, https://www.fool.com/investing/stock-market/types-of-stocks/dividend-stocks/. 
+[^10]: Hall, Jason. “Best Dividend Stocks to Buy and Hold in 2023.” The Motley Fool, https://www.fool.com/investing/stock-market/types-of-stocks/dividend-stocks/.
 
-[^11]: “Why Dividends Matter.” Fidelity, https://www.fidelity.com/learning-center/investment-products/stocks/why-dividends-matter. 
+[^11]: “Why Dividends Matter.” Fidelity, https://www.fidelity.com/learning-center/investment-products/stocks/why-dividends-matter.
 
-[^12]: Yec. “Council Post: The Aftermath and Impact of Covid-19 on Stock Markets.” Forbes, Forbes Magazine, 13 Feb. 2023, https://www.forbes.com/sites/theyec/2023/02/10/the-aftermath-and-impact-of-covid-19-on-stock-markets/?sh=4f0a88f2c120. 
+[^12]: Yec. “Council Post: The Aftermath and Impact of Covid-19 on Stock Markets.” Forbes, Forbes Magazine, 13 Feb. 2023, https://www.forbes.com/sites/theyec/2023/02/10/the-aftermath-and-impact-of-covid-19-on-stock-markets/?sh=4f0a88f2c120.
 
 [^13]: Bradley, Chris, and Peter Stumpner. “The Impact of Covid-19 on Capital Markets, One Year In.” McKinsey &amp; Company, McKinsey &amp; Company, 10 Mar. 2021, https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/the-impact-of-covid-19-on-capital-markets-one-year-in. 

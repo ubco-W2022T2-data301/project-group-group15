@@ -45,9 +45,6 @@ class EquityData:
         """
         self.common_data_path = common_data_path
         self.extension = extension
-    
-    def load_and_process():
-        pass
 
     def load_and_process(self, file_name: str, directory_path="../data/raw/", number_of_rows: int=500, exclude_columns: list()=[],
                          additional_data: pd.DataFrame=None, additional_column: str=None, dropna: bool=False) -> pd.DataFrame:
@@ -90,7 +87,7 @@ class EquityData:
         return df
     
     def save_processed_data(self, data: list, file_names: list(), directory_path: str="../data/processed/") -> None:
-        """Iterates through the list of Pandas DataFrames provided and creates .csv files for each one in the proecessed data directory.
+        """Iterates through the list of Pandas DataFrames provided and creates .csv files for each one in the processed data directory.
         
         Args:
             data: A list of ordered Pandas DataFrames to convert to .csv files.
@@ -180,7 +177,7 @@ class QuantitativeAnalysis:
         return processed_df
         
     def multiple_linear_regression(self, df: pd.DataFrame, predictors: list(), target_y: str='Market Capitalization', model_name: str='Model Results') -> pd.DataFrame:
-        """Consturcts a multiple linear regression model.
+        """Constructs a multiple linear regression model.
         
         Args:
             df: A Pandas DataFrame containing the data to be processed.
@@ -309,7 +306,7 @@ class QuantitativeAnalysis:
         Args:
             df: A Pandas DataFrame of the data to be filtered.
             col: The name of the column to filter.
-            lower_quartile: The quartile uesd for the lower fence variable.
+            lower_quartile: The quartile used for the lower fence variable.
             upper_quartile: The quartile used for the upper fence variable.
         
         Returns:
@@ -428,7 +425,7 @@ class DataVisualization(QuantitativeAnalysis):
 
     def legacy_score_density_plot(self, df: pd.DataFrame, data_name: str) -> plt.graph_objs._figure.Figure:
         """Constructs an interactive compound density plot based on a histogram of the data provided, plotting a density curve with clusters of data points below.
-        Is included as an older version of the newer score_density_plot function for backwards compatability with the exploratory data analysis (EDA) files in the ungraded section of the project.
+        Is included as an older version of the newer score_density_plot function for backwards compatibility with the exploratory data analysis (EDA) files in the ungraded section of the project.
         
         Args:
             :df: A Pandas DataFrame of equity data.
@@ -480,7 +477,7 @@ class DataVisualization(QuantitativeAnalysis):
             """A helper function to convert the heat map into a correlation plot"""
             # Correlation
             df_corr = df.corr(numeric_only=True).round(1)
-            # Conver to a triangular correlation plot
+            # Convert to a triangular correlation plot
             mask = np.zeros_like(df_corr, dtype=bool)
             mask[np.triu_indices_from(mask)] = True
             # Final visualization
@@ -721,7 +718,7 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
             dividends_importance: Specifies whether dividends are important to the client, dictating whether analysis algorithms should place greater importance on dividends.
             preferred_industries: Specifies a list of industries that the analysis algorithms should prioritize when constructing the investment portfolio.
             volatility_tolerance: Accepts a range of values from 0 to 1, with 1 implying maximum volatility tolerance (i.e. the client is willing to lose 100% of their investment to take on more risk).
-            preferred_companies: Specifies a list of companies that the analysis algorithms will accomodate in the final portfolio irrespective of their score.
+            preferred_companies: Specifies a list of companies that the analysis algorithms will accommodate in the final portfolio irrespective of their score.
             diversification: Accepts a range of values from 0 to 1, with 1 implying maximum diversification (i.e. funds will be distributed evenly across all industries and equally among all companies).
             investment_strategy: Specifies the investment strategy that will guide the output of the analysis algorithms, in which this analysis notebook strictly focuses on growth investing.
             

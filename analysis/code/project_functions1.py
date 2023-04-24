@@ -17,7 +17,14 @@ from plotly.subplots import make_subplots
 
 @dataclass
 class ValueRange:
+    """A data class that is used to validate value range inputs across class and function definitions."""
     def __init__(self, min: float=0, max: float=1):
+        """Constructs the necessary attributes of the ValueRange class.
+        
+        Args:
+            min: the minimum value for the accepted data range.
+            max: the maximum value for the accepted data range.
+        """
         self.min = min
         self.max = max
     
@@ -37,11 +44,13 @@ class ValueRange:
             raise ValueError(f'{x} must be between 0 and 1 (including).')
 
 class EquityData:
+    """Includes a series of data loading and processing functions."""
     def __init__(self, common_data_path: str="us_equities_tradingview_data_", extension: str=".csv"):
-        """Includes a series of data loading and processing functions.
+        """Constructs the necessary attributes of the EquityData class.
         
         Args:
-            common_data_path: For raw data files that have a common path up to a certain point, specify this to optimize the loading process of multiple files.
+            common_data_path: As each exported processed data set includes an attribution to TradingView, a common name is used for the first part of every file name.
+            extension: The file extension attached to each exported file.
         """
         self.common_data_path = common_data_path
         self.extension = extension
@@ -61,7 +70,7 @@ class EquityData:
         assert type(number_of_rows) == int, "Number of rows must be an integer"
         df = pd.DataFrame()
         
-        # NOTE: method chains are also used outside of this function -- see line 366
+        # NOTE: method chains are also used outside of this function--see line 396
         # The nature of our data requires us to do a lot of processing in large functions with specific requirements for different data frames
         df = ( # method chain 1
             pd.read_csv(directory_path + self.common_data_path + file_name + self.extension)
@@ -101,6 +110,15 @@ class EquityData:
             df.to_csv(directory_path + "processed_" + self.common_data_path + file_name + self.extension)
     
     def combined_data_frame(self, data: list, dropna: bool=True) -> pd.DataFrame:
+        """Constructs and returns the central DataFrame used throughout the project; a combination of all data sets.
+        
+        Args:
+            data: a list of Pandas DataFrames to be joined together.
+            dropna: whether to drop rows that contain NaN values or not. Applies a threshold.
+        
+        Returns:
+            A Pandas DataFrame.
+        """
         df = pd.concat(data, axis=1)
         
         if dropna:
@@ -111,13 +129,13 @@ class EquityData:
 
 # NOTE: ANALYSIS FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class QuantitativeAnalysis:
+    """Includes several analysis functions that process select data across all data sets."""
     def __init__(self, number_of_companies: int=500):
-        """Includes several analysis functions that process select data across all data sets.
+        """Constructs the necessary attributes of the QuantitativeAnalysis class.
 
         Args:
             number_of_companies: The number of companies included in the sample, with the default being those from the S&P500 Index.
         """
-        
         self.number_of_companies = number_of_companies
         
     def lin_reg_coef_determination(self, df: pd.DataFrame, X: str, y: str='3-Month Performance', filter_outliers: bool=False) -> np.float64:
@@ -324,10 +342,11 @@ class QuantitativeAnalysis:
         
         Args:
             df: A Pandas DataFrame containing all of the variables to be examined
-            correlation_threshold: 
+            correlation_threshold: The minimum Pearson correlation coefficient that each correlation must have in order to be counted as being of a high correlation.
         
+        Returns:
+            A Pandas DataFrame that contains summary statistics regarding the number of high correlation counts.
         """
-        
         corr = df.corr(numeric_only=True)
 
         mask = np.zeros_like(corr, dtype=bool)
@@ -353,13 +372,27 @@ class QuantitativeAnalysis:
 
 # NOTE: VISUALIZATION FUNCTIONS--------------------------------------------------------------------------------------------------------------------
 class DataVisualization(QuantitativeAnalysis):
+    """Contains a series of visualization wrapper functions for graphics created with Plotly or Seaborn. Inherits from QuantitativeAnalysis."""
     def __init__(self):
+        """Constructs the necessary attributes of the DataVisualization class."""
         QuantitativeAnalysis.__init__(self)
         EquityData.__init__(self)
         
         self.processed_equities = EquityData("processed_us_equities_tradingview_data_")
     
     def cross_regression_model_comparison(self, target_y: str, known_predictors: list(), computed_predictors: list(), control_test_predictors: list(), title: str) -> plt.graph_objs._figure.Figure:
+        """A graphical representation of a semi-algorithmic multiple linear regression optimization algorithm that uses the Scikit-Learn linear regression model. Is not used for predictions, but rather, to confirm trends.
+        
+        Args:
+            target_y: The name of the column from the processed data set to be used on the y-axis and paired with the predictors.
+            known_predictors: A list of column names from the processed data set to be used as predictors against the target y. These columns should be those which are known by financial specialists to be particularly important. Used as a secondary control test.
+            computed_predictors: A list of column names from the processed data set to be used as predictors against the target y. These columns should be those that are intended to be tested against the control test.
+            control_test_predictors: A list of column names from the processed data set to be used as predictors against the target y. Used as the primary control test and should feature only low-correlation columns.
+            title: The name of the model being developed.
+        
+        Returns:
+            A bar plot.
+        """
         mlr_data = ( # method chain 3
                     self.processed_equities.load_and_process('normalized_data_unweighted_aggregated_score', '../data/processed/')
                     .select_dtypes(exclude='object')
@@ -560,6 +593,7 @@ class DataVisualization(QuantitativeAnalysis):
             )
         
         def pair_construction(row: int, col: int, predictor) -> None:
+            """A helper function to construct the faceted plot."""
             row += 1
             col += 1
             
@@ -652,7 +686,7 @@ class DataVisualization(QuantitativeAnalysis):
         return fig
 
     def scatter_3d(self, df: pd.DataFrame, x: str, y: str, z: str) -> plt.graph_objs._figure.Figure:
-        """Constructs a 3D interactive plot of equity data on 3 axes.
+        """Constructs a 3D interactive plot of equity data on 3 axes. Used in the exploratory data analysis phase.
         
         Args:
             df: A Pandas DataFrame of equity data.
@@ -703,12 +737,10 @@ class DataVisualization(QuantitativeAnalysis):
         mplt.title(f"Correlation Plot of {data_name}")
 
 class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
+    """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied. Inherits from EquityData, QuantitativeAnalysis."""
     def __init__(self, portfolio_size: int=50, initial_capital: float=100000.00, capital_per_period: float=100.00, period: int=7, dividends_importance: bool=False, preferred_industries: list=["Technology Services, Electronic Technology"],
                 volatility_tolerance: Annotated[float, ValueRange(0.0, 1.0)]=0.7, preferred_companies: list=["Apple, Google, Microsoft, Amazon"], diversification: Annotated[float, ValueRange(0.0, 1.0)]=0.2, investment_strategy: str="Growth"):
-        EquityData.__init__(self)
-        QuantitativeAnalysis.__init__(self)
-        
-        """A portfolio recommendation class that allocates user funds to a series of assets in conjunction with the results from the analysis algorithms applied.
+        """Constructs the necessary attributes of the PortfolioRecommendation class.
         
         Args:
             portfolio_size: The number of assets included in the final portfolio.
@@ -725,6 +757,8 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         Raises:
             ValueError if an input parameter does not satisfy its accepted range.
         """
+        EquityData.__init__(self)
+        QuantitativeAnalysis.__init__(self)
         
         self.initial_capital = initial_capital
         self.portfolio_size = portfolio_size
@@ -774,6 +808,7 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         score_count_df = self.extract_corr_plot_counts(complete_df).T
         
         def extract_top_predictors(threshold: int=6, exclude_columns: list=['Gross Profit (FY)', 'Enterprise Value (MRQ)']) -> pd.DataFrame:
+            """A helper function to extract the top predictors."""
             score_count_df['Assigned Weight'] = score_count_df['Count'] / sum(score_count_df['Count'])
             
             top_predictors_narrowest = score_count_df[score_count_df['Count'] >= threshold].index
@@ -845,10 +880,11 @@ class PortfolioRecommendation(EquityData, QuantitativeAnalysis):
         return scored_equities
 
 class DataUploadFunctions(EquityData, QuantitativeAnalysis):
+    """A series of functions that were used to create the processed data under the processed data folder. Inherits from EquityData, QuantitativeAnalysis."""
     def __init__(self):
+        """Constructs the necessary attributes of the DataUploadFunctions class."""
         EquityData.__init__(self)
         QuantitativeAnalysis.__init__(self)
-        """A series of custom processed data upload functions according to the analysis conducted throughout the analysis1.ipynb notebook."""
         
         self.processed_data = EquityData('processed_us_equities_tradingview_data_')
         self.complete_df = self.processed_data.load_and_process('complete_data', directory_path='../data/processed/')
